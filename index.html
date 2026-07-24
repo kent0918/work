@@ -42,7 +42,7 @@
             width: 100%;
             max-width: 900px;
             margin: 0 auto;
-            padding: 10px 15px;
+            padding: 8px 12px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
 
@@ -50,12 +50,12 @@
             text-align: center;
             font-size: 15px;
             font-weight: bold;
-            margin: 0 0 6px 0;
+            margin: 0 0 5px 0;
             letter-spacing: 0.5px;
             color: #1a252f;
         }
 
-        /* 超精準單頁表格排版 (縮減高度以防跨頁) */
+        /* 超精準單頁表格排版 (固定高度與極致緊湊設計) */
         table.sheet-table {
             width: 100%;
             border-collapse: collapse;
@@ -68,7 +68,7 @@
         table.sheet-table th, table.sheet-table td {
             border: 1px solid #333;
             padding: 0px 1px;
-            height: 16.5px; /* 緊湊高度，確保 31 天完整置於一頁 */
+            height: 16px; /* 完美控制 31 天高度不跨頁 */
             word-break: break-all;
             vertical-align: middle;
             line-height: 1.1;
@@ -78,7 +78,7 @@
             background-color: #dce8f5 !important;
             color: #1c2d42 !important;
             font-weight: bold;
-            font-size: 10px;
+            font-size: 9.5px;
         }
 
         .weekend-row td { background-color: #fff3e0 !important; }
@@ -87,13 +87,13 @@
         .hide-leave-col .col-leave { display: none !important; }
 
         .footer-notes {
-            margin-top: 6px;
-            font-size: 8.5px;
-            line-height: 1.25;
+            margin-top: 5px;
+            font-size: 8px;
+            line-height: 1.2;
             color: #444;
         }
 
-        /* 🖨️ 系統列印專用 CSS（100% 複製舊版完美單頁比例） */
+        /* 🖨️ 系統列印專用 CSS（100% 確保單頁無溢位） */
         @media print {
             body { background: white; margin: 0; padding: 0; }
             .no-print { display: none !important; }
@@ -105,15 +105,15 @@
             }
             @page { 
                 size: A4 portrait; 
-                margin: 5mm 6mm; 
+                margin: 4mm 5mm; 
             }
-            h2.title { font-size: 15px; margin-bottom: 5px; }
-            table.sheet-table { font-size: 9.5px !important; }
-            table.sheet-table th, table.sheet-table td { height: 16px !important; padding: 0 !important; }
+            h2.title { font-size: 14.5px; margin-bottom: 4px; }
+            table.sheet-table { font-size: 9px !important; }
+            table.sheet-table th, table.sheet-table td { height: 15.5px !important; padding: 0 !important; }
             th { background-color: #dce8f5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .weekend-row td { background-color: #fff3e0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .leave-row td { background-color: #f3e5f5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .footer-notes { font-size: 8px !important; margin-top: 4px; }
+            .footer-notes { font-size: 7.5px !important; margin-top: 3px; }
         }
     </style>
 </head>
@@ -131,7 +131,7 @@
                     <option value="01">01 月</option><option value="02">02 月</option>
                     <option value="03">03 月</option><option value="04">04 月</option>
                     <option value="05">05 月</option><option value="06">06 月</option>
-                    <option value="07">07 月</option><option value="08">08 月</option>
+                    <option value="07" selected>07 月</option><option value="08">08 月</option>
                     <option value="09">09 月</option><option value="10">10 月</option>
                     <option value="11">11 月</option><option value="12">12 月</option>
                 </select>
@@ -729,7 +729,7 @@
             window.scrollTo(0, 0);
 
             const opt = {
-                margin:       [4, 4, 4, 4],
+                margin:       [3, 3, 3, 3],
                 filename:     fileName,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2, useCORS: true, scrollY: 0, scrollX: 0 },
