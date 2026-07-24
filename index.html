@@ -305,13 +305,13 @@
         <div class="sync-box">
             <h4 style="margin:0 0 8px 0; color:#6f42c1;">📲 PC與手機 資料備份與同步</h4>
             <div class="form-row" style="margin-bottom:0;">
-                <button class="btn btn-sync" onclick="exportData()">📤 匯出資料檔 (.json)</button>
+                <button class="btn btn-sync" type="button" onclick="exportData()">📤 匯出資料檔 (.json)</button>
                 
                 <label class="btn btn-sync" style="cursor:pointer; margin-bottom:0;">
                     📥 匯入資料檔 (.json)
                     <input type="file" id="importFileInput" accept=".json" style="display:none;" onchange="importData(event)">
                 </label>
-                <span style="font-size:12px; color:#555;">（手機點擊匯出將直接開啟分享面板傳送備份檔，點擊匯入即可同步！）</span>
+                <span style="font-size:12px; color:#555;">（點擊匯出將直接下載備份檔，手機也能輕鬆儲存！）</span>
             </div>
         </div>
 
@@ -807,8 +807,8 @@
             alert("已清空當月資料！");
         }
 
-        // 📲 最佳化手機端備份匯出（優先使用手機原生分享面板，若不支援則退回傳統下載）
-        async function exportData() {
+        // 📲 穩定可靠的手機/電腦相容匯出功能（使用 Blob 下載，不依賴安全性受限的 Share API）
+        function exportData() {
             const allData = {};
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
@@ -818,35 +818,17 @@
             }
 
             const jsonString = JSON.stringify(allData, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8;' });
             const fileName = `attendance_backup_${new Date().toISOString().slice(0,10)}.json`;
-            const file = new File([jsonString], fileName, { type: 'application/json' });
 
-            // 如果手機支援原生 Share API，直接呼叫分享面板
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                try {
-                    await navigator.share({
-                        files: [file],
-                        title: '出勤紀錄備份檔',
-                        text: '請選擇要儲存或傳送備份檔的位置'
-                    });
-                    return;
-                } catch (err) {
-                    if (err.name !== 'AbortError') {
-                        console.log('分享取消或發生錯誤，改用傳統下載');
-                    } else {
-                        return;
-                    }
-                }
-            }
-
-            // 退回傳統電腦/一般下載模式
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(jsonString);
+            const url = URL.createObjectURL(blob);
             const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", fileName);
+            downloadAnchor.href = url;
+            downloadAnchor.download = fileName;
             document.body.appendChild(downloadAnchor);
             downloadAnchor.click();
-            downloadAnchor.remove();
+            document.body.removeChild(downloadAnchor);
+            URL.revokeObjectURL(url);
         }
 
         function importData(event) {
