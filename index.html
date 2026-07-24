@@ -160,7 +160,7 @@
                 <select id="monthNum" onchange="loadMonthData()">
                     <option value="01">01 月</option><option value="02">02 月</option>
                     <option value="03">03 月</option><option value="04">04 月</option>
-                    <option value="05">05 月</option><option value="06" selected>06 月</option>
+                    <option value="05">05 月</option><option value="06">06 月</option>
                     <option value="07">07 月</option><option value="08">08 月</option>
                     <option value="09">09 月</option><option value="10">10 月</option>
                     <option value="11">11 月</option><option value="12">12 月</option>
@@ -368,6 +368,16 @@
     </div>
 
     <script>
+        // 初始化時自動帶入今天的年份與月份
+        function initCurrentDate() {
+            const today = new Date();
+            const rocYear = today.getFullYear() - 1911;
+            const monthStr = String(today.getMonth() + 1).padStart(2, '0');
+
+            document.getElementById('yearNum').value = rocYear;
+            document.getElementById('monthNum').value = monthStr;
+        }
+
         function getStorageKey() {
             const y = document.getElementById('yearNum').value;
             const m = document.getElementById('monthNum').value;
@@ -394,7 +404,6 @@
             const st = document.getElementById('stTime').value;
             const ed = document.getElementById('edTime').value;
 
-            // 上班遲到計算 (標準 08:30)
             if (st) {
                 const [h, m] = st.split(':').map(Number);
                 const actualMins = h * 60 + m;
@@ -406,7 +415,6 @@
                 }
             }
 
-            // 下班早退計算 (標準 17:30)
             if (ed) {
                 const [h, m] = ed.split(':').map(Number);
                 const actualMins = h * 60 + m;
@@ -436,6 +444,12 @@
 
             const currentRecords = JSON.parse(localStorage.getItem(getStorageKey())) || {};
 
+            // 取得今天的日期，用於自動選取
+            const today = new Date();
+            const todayDay = today.getDate();
+            const isCurrentMonth = (today.getFullYear() === yearAD && (today.getMonth() + 1) === month);
+            let targetDayKey = '';
+
             for (let day = 1; day <= daysInMonth; day++) {
                 const dateObj = new Date(yearAD, month - 1, day);
                 const weekStr = weekNames[dateObj.getDay()];
@@ -444,10 +458,19 @@
                 const opt = document.createElement('option');
                 opt.value = dateKey;
                 opt.innerText = dateKey;
+                
+                // 如果是當月份，預設選取今天；否則預設第 1 天
+                if (isCurrentMonth && day === todayDay) {
+                    opt.selected = true;
+                    targetDayKey = dateKey;
+                }
+
                 dateSelect.appendChild(opt);
             }
 
             renderTable(daysInMonth, yearAD, month, weekNames, currentRecords);
+            
+            // 自動載入選中的日期資料
             loadSingleDayData();
             toggleLeaveColumn();
         }
@@ -652,6 +675,8 @@
 
         function loadSingleDayData() {
             const dateKey = document.getElementById('selectDate').value;
+            if (!dateKey) return;
+
             const currentRecords = JSON.parse(localStorage.getItem(getStorageKey())) || {};
             const data = currentRecords[dateKey] || {};
 
@@ -811,6 +836,8 @@
             reader.readAsText(file);
         }
 
+        // 頁面載入時自動初始化年份、月份與當天日期
+        initCurrentDate();
         loadMonthData();
     </script>
 </body>
