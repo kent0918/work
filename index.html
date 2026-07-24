@@ -4,142 +4,96 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>添盈科技有限公司員工出勤紀錄</title>
-    <!-- 引入 HTML 轉 PDF 的官方穩定套件 html2pdf.js -->
+    <!-- 引入 HTML 轉 PDF 套件 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: "Microsoft JhengHei", "微軟正黑體", Arial, sans-serif; margin: 12px; color: #333; background-color: #f0f2f5; }
+        body { font-family: "Microsoft JhengHei", "微軟正黑體", Arial, sans-serif; margin: 10px; color: #333; background-color: #f0f2f5; }
 
-        /* 網頁面板 (列印/轉PDF時隱藏) */
+        /* 網頁控制面板 (列印/轉PDF時隱藏) */
         .no-print {
             background: #ffffff;
             padding: 12px 15px;
             border-radius: 8px;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         }
         .form-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; align-items: center; }
         .form-row label { font-weight: bold; font-size: 13px; }
-        .form-row input, .form-row select { padding: 5px; border: 1px solid #ccc; border-radius: 4px; }
-        .btn { padding: 6px 14px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; font-size: 13px; }
+        .form-row input, .form-row select { padding: 4px; border: 1px solid #ccc; border-radius: 4px; }
+        .btn { padding: 6px 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; font-size: 13px; }
         .btn-primary { background-color: #0066cc; }
         .btn-pdf { background-color: #28a745; }
         .btn-warning { background-color: #e67e22; }
         .btn-danger { background-color: #dc3545; }
         .btn-sync { background-color: #6f42c1; }
 
-        .batch-box {
-            background-color: #fff8e7;
-            border: 1px solid #ffe0b2;
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-        }
+        .batch-box { background-color: #fff8e7; border: 1px solid #ffe0b2; padding: 8px; border-radius: 6px; margin-bottom: 8px; }
+        .leave-box { background-color: #eef7ff; border: 1px solid #bae0ff; padding: 8px; border-radius: 6px; margin-bottom: 8px; }
+        .sync-box { background-color: #f3e8ff; border: 1px solid #d8b4fe; padding: 8px; border-radius: 6px; margin-top: 8px; }
 
-        .leave-box {
-            background-color: #eef7ff;
-            border: 1px solid #bae0ff;
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-        }
-
-        .sync-box {
-            background-color: #f3e8ff;
-            border: 1px solid #d8b4fe;
-            padding: 10px;
-            border-radius: 6px;
-            margin-top: 10px;
-        }
-
-        /* 顏色圖例說明標籤 */
-        .color-legend {
-            display: flex;
-            gap: 12px;
-            font-size: 11px;
-            margin-bottom: 8px;
-            font-weight: bold;
-            flex-wrap: wrap;
-        }
+        .color-legend { display: flex; gap: 12px; font-size: 11px; margin-bottom: 6px; font-weight: bold; flex-wrap: wrap; }
         .legend-item { display: flex; align-items: center; gap: 4px; }
-        .color-box { width: 14px; height: 14px; border-radius: 3px; border: 1px solid #ccc; }
+        .color-box { width: 13px; height: 13px; border-radius: 2px; border: 1px solid #ccc; }
 
         /* A4 紙張與標準表格容器 */
         .paper-container {
             background: white;
             width: 100%;
-            max-width: 960px;
+            max-width: 900px;
             margin: 0 auto;
-            padding: 15px;
+            padding: 10px 15px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            overflow-x: auto;
         }
 
         h2.title {
             text-align: center;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
-            margin: 0 0 10px 0;
+            margin: 0 0 6px 0;
             letter-spacing: 0.5px;
             color: #1a252f;
         }
 
-        /* 表格結構樣式 (網頁與系統列印標準比例) */
+        /* 超精準單頁表格排版 (縮減高度以防跨頁) */
         table.sheet-table {
             width: 100%;
-            min-width: 800px;
             border-collapse: collapse;
-            font-size: 11px;
+            font-size: 10px;
             text-align: center;
             table-layout: fixed;
-            border: 1px solid #4a637d;
+            border: 1px solid #333;
         }
 
         table.sheet-table th, table.sheet-table td {
-            border: 1px solid #4a637d;
-            padding: 2px 1px;
-            height: 20px;
+            border: 1px solid #333;
+            padding: 0px 1px;
+            height: 16.5px; /* 緊湊高度，確保 31 天完整置於一頁 */
             word-break: break-all;
             vertical-align: middle;
+            line-height: 1.1;
         }
 
-        /* 表格標頭：淺淡藍色 `#dce8f5` */
         table.sheet-table th {
             background-color: #dce8f5 !important;
             color: #1c2d42 !important;
             font-weight: bold;
-            font-size: 11px;
-            line-height: 1.1;
+            font-size: 10px;
         }
 
-        /* 平常工作日懸停效果 */
-        table.sheet-table tbody tr:hover {
-            background-color: #f1f2f6;
-        }
+        .weekend-row td { background-color: #fff3e0 !important; }
+        .leave-row td { background-color: #f3e5f5 !important; }
 
-        /* 顏色設定：六日休假背景 (暖杏色) */
-        .weekend-row td {
-            background-color: #fff3e0 !important;
-        }
-
-        /* 顏色設定：請假背景 (柔和粉紫色) */
-        .leave-row td {
-            background-color: #f3e5f5 !important;
-        }
-
-        /* 當勾選隱藏請假時數欄位時採用的 CSS */
-        .hide-leave-col .col-leave {
-            display: none !important;
-        }
+        .hide-leave-col .col-leave { display: none !important; }
 
         .footer-notes {
-            margin-top: 8px;
-            font-size: 9px;
-            line-height: 1.3;
-            color: #555;
+            margin-top: 6px;
+            font-size: 8.5px;
+            line-height: 1.25;
+            color: #444;
         }
 
-        /* 🖨️ 系統列印專用 CSS（恢復原始完美的 A4 高寬比例） */
+        /* 🖨️ 系統列印專用 CSS（100% 複製舊版完美單頁比例） */
         @media print {
             body { background: white; margin: 0; padding: 0; }
             .no-print { display: none !important; }
@@ -148,32 +102,30 @@
                 padding: 0; 
                 width: 100% !important; 
                 max-width: none !important;
-                overflow: visible !important;
             }
             @page { 
                 size: A4 portrait; 
-                margin: 6mm 8mm; /* 標準寬適邊距 */
+                margin: 5mm 6mm; 
             }
-            h2.title { font-size: 16px; margin-bottom: 8px; }
-            table.sheet-table { min-width: 100% !important; font-size: 10.5px !important; }
-            table.sheet-table th, table.sheet-table td { padding: 1px 0px !important; height: 18.5px !important; }
-            th { background-color: #dce8f5 !important; color: #1c2d42 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            h2.title { font-size: 15px; margin-bottom: 5px; }
+            table.sheet-table { font-size: 9.5px !important; }
+            table.sheet-table th, table.sheet-table td { height: 16px !important; padding: 0 !important; }
+            th { background-color: #dce8f5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .weekend-row td { background-color: #fff3e0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .leave-row td { background-color: #f3e5f5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .footer-notes { font-size: 8.5px !important; margin-top: 6px; }
+            .footer-notes { font-size: 8px !important; margin-top: 4px; }
         }
     </style>
 </head>
 <body>
 
-    <!-- 操作面板 -->
+    <!-- 控制面板 -->
     <div class="no-print">
-        <h3 style="margin-top:0; margin-bottom:10px; color:#2c3e50;">📝 出勤紀錄管理系統</h3>
+        <h3 style="margin-top:0; margin-bottom:8px; color:#2c3e50;">📝 出勤紀錄管理系統</h3>
         
-        <!-- 基本設定區 -->
         <div class="form-row">
-            <label>姓名：<input type="text" id="empName" value="蔡崇欽" style="width: 75px;" oninput="loadMonthData()"></label>
-            <label>年份：<input type="number" id="yearNum" value="115" style="width: 55px;" onchange="loadMonthData()"> 年</label>
+            <label>姓名：<input type="text" id="empName" value="蔡崇欽" style="width: 70px;" oninput="loadMonthData()"></label>
+            <label>年份：<input type="number" id="yearNum" value="115" style="width: 50px;" onchange="loadMonthData()"> 年</label>
             <label>月份：
                 <select id="monthNum" onchange="loadMonthData()">
                     <option value="01">01 月</option><option value="02">02 月</option>
@@ -187,29 +139,26 @@
             <button class="btn btn-primary" onclick="loadMonthData()">載入/切換</button>
         </div>
 
-        <!-- 👁️ 顯示／隱藏開關設定 -->
-        <div class="form-row" style="background-color: #e8f4f8; padding: 6px 10px; border-radius: 6px; border: 1px solid #bce8f1;">
+        <div class="form-row" style="background-color: #e8f4f8; padding: 4px 8px; border-radius: 4px;">
             <label style="color: #0c5460; font-size: 12px; cursor: pointer;">
                 <input type="checkbox" id="showLeaveColToggle" checked onchange="toggleLeaveColumn()">
                 <strong>👁️ 顯示「請假時數」欄位</strong>
             </label>
         </div>
 
-        <!-- 🚀 快速批次填寫區 -->
         <div class="batch-box">
-            <h4 style="margin:0 0 6px 0; color:#d35400; font-size:13px;">⚡ 快速批次套用（填滿全月工作日）</h4>
+            <h4 style="margin:0 0 4px 0; color:#d35400; font-size:12px;">⚡ 快速批次套用（填滿全月工作日）</h4>
             <div class="form-row">
                 <label>上班：<input type="time" id="batchSt" value="08:30"></label>
                 <label>下班：<input type="time" id="batchEd" value="17:30"></label>
                 <label>休息：<input type="time" id="batchRstSt" value="12:00">~<input type="time" id="batchRstEd" value="13:00"></label>
-                <label>地點：<input type="text" id="batchNote" value="台大" style="width: 65px;"></label>
+                <label>地點：<input type="text" id="batchNote" value="台大" style="width: 60px;"></label>
                 <button class="btn btn-warning" onclick="applyBatchWork()">⚡ 填滿平日</button>
             </div>
         </div>
 
-        <!-- 單日修改與微調區 -->
         <form id="recordForm" onsubmit="saveRecord(event)">
-            <h4 style="margin:0 0 6px 0; color:#27ae60; font-size:13px;">✏️ 單日微調（出勤 / 請假 / 支出）</h4>
+            <h4 style="margin:0 0 4px 0; color:#27ae60; font-size:12px;">✏️ 單日微調（出勤 / 請假 / 支出）</h4>
             
             <div class="form-row">
                 <label>日期：<select id="selectDate" onchange="loadSingleDayData()"></select></label>
@@ -218,9 +167,8 @@
                 </label>
             </div>
 
-            <!-- 請假專用區 -->
             <div id="leaveSection" class="leave-box" style="display: none;">
-                <div class="form-row" style="margin-bottom:6px;">
+                <div class="form-row" style="margin-bottom:4px;">
                     <label style="color:#0056b3;">假別：
                         <select id="leaveType" onchange="applyLeaveType()">
                             <option value="特休">特休</option><option value="事假">事假</option>
@@ -229,8 +177,8 @@
                             <option value="custom">其他</option>
                         </select>
                     </label>
-                    <input type="text" id="leaveCustom" placeholder="名稱" style="display:none; width:90px;" oninput="applyLeaveType()">
-                    <label>時數：<input type="number" step="0.5" id="leaveHours" style="width: 55px;" onchange="calcLeaveHours()"> 小時</label>
+                    <input type="text" id="leaveCustom" placeholder="名稱" style="display:none; width:80px;" oninput="applyLeaveType()">
+                    <label>時數：<input type="number" step="0.5" id="leaveHours" style="width: 50px;" onchange="calcLeaveHours()"> 小時</label>
                 </div>
                 <div class="form-row" style="margin-bottom:0; font-size:11px;">
                     <label>時間：<input type="time" id="leaveSt" value="08:30" onchange="calcLeaveHours()"></label>
@@ -238,29 +186,26 @@
                 </div>
             </div>
 
-            <!-- 正常出勤時間區 -->
             <div id="workTimeSection" class="form-row">
                 <label>上班：<input type="time" id="stTime" value="08:30" onchange="autoCalcLateness()"></label>
                 <label>下班：<input type="time" id="edTime" value="17:30" onchange="autoCalcLateness()"></label>
                 <label>休息：<input type="time" id="rstSt" value="12:00">~<input type="time" id="rstEd" value="13:00"></label>
                 
-                <span style="border-left: 1px solid #ccc; padding-left: 6px; display: inline-flex; gap: 4px; align-items: center;">
-                    <label style="color:#c0392b;">遲：<input type="number" id="lateMins" placeholder="0" style="width: 45px;"></label>
-                    <label style="color:#d35400;">早：<input type="number" id="earlyMins" placeholder="0" style="width: 45px;"></label>
+                <span style="border-left: 1px solid #ccc; padding-left: 6px; display: inline-flex; gap: 4px;">
+                    <label style="color:#c0392b;">遲：<input type="number" id="lateMins" placeholder="0" style="width: 40px;"></label>
+                    <label style="color:#d35400;">早：<input type="number" id="earlyMins" placeholder="0" style="width: 40px;"></label>
                 </span>
             </div>
 
-            <!-- 加班填寫區 -->
-            <div id="otSection" class="form-row" style="background:#f9f9f9; padding:6px; border-radius:4px; border:1px dashed #ccc;">
+            <div id="otSection" class="form-row" style="background:#f9f9f9; padding:4px; border-radius:4px; border:1px dashed #ccc;">
                 <label style="color:#2a6496;">⏰ 加班：</label>
                 <label><input type="time" id="otStart" onchange="calcOT()"></label>
                 <label>~ <input type="time" id="otEnd" onchange="calcOT()"></label>
-                <button type="button" class="btn" style="background:#6c757d; font-size:10px; padding:2px 6px;" onclick="setHolidayOT()">帶入假日加班</button>
-                <label><input type="text" id="otHours" placeholder="8" style="width: 45px;"> 小時</label>
+                <button type="button" class="btn" style="background:#6c757d; font-size:10px; padding:2px 5px;" onclick="setHolidayOT()">帶入假日加班</button>
+                <label><input type="text" id="otHours" placeholder="8" style="width: 40px;"> 時</label>
             </div>
 
-            <!-- 支出與備註區 -->
-            <div class="form-row" style="margin-top: 6px;">
+            <div class="form-row" style="margin-top: 4px;">
                 <label>支出：
                     <select id="expSelect" onchange="handleExpSelect()">
                         <option value="">無</option><option value="油資">油資</option>
@@ -268,39 +213,36 @@
                         <option value="custom">其他</option>
                     </select>
                 </label>
-                <input type="text" id="expCustom" placeholder="項目" style="display:none; width:80px;">
+                <input type="text" id="expCustom" placeholder="項目" style="display:none; width:70px;">
                 
-                <label>金額：<input type="number" id="expAmount" placeholder="185" style="width: 60px;"></label>
-                <label>備註：<input type="text" id="noteInput" placeholder="台大" style="width: 120px;"></label>
+                <label>金額：<input type="number" id="expAmount" placeholder="185" style="width: 55px;"></label>
+                <label>備註：<input type="text" id="noteInput" placeholder="台大" style="width: 100px;"></label>
                 <button type="submit" class="btn btn-primary" style="margin-left:auto;">儲存單日</button>
             </div>
         </form>
 
-        <!-- 📲 資料備份與同步區 -->
         <div class="sync-box">
-            <h4 style="margin:0 0 6px 0; color:#6f42c1; font-size:13px;">📲 資料備份與同步</h4>
+            <h4 style="margin:0 0 4px 0; color:#6f42c1; font-size:12px;">📲 資料備份與同步</h4>
             <div class="form-row" style="margin-bottom:0;">
-                <button class="btn btn-sync" onclick="exportData()">📤 匯出資料 (.json)</button>
+                <button class="btn btn-sync" onclick="exportData()">📤 匯出 JSON</button>
                 <label class="btn btn-sync" style="cursor:pointer; margin-bottom:0;">
-                    📥 匯入資料 (.json)
+                    📥 匯入 JSON
                     <input type="file" id="importFileInput" accept=".json" style="display:none;" onchange="importData(event)">
                 </label>
             </div>
         </div>
 
-        <!-- 🖨️ 列印/轉 PDF 功能按鈕區 -->
-        <div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
-            <!-- 📥 直接下載完美單頁 PDF -->
-            <button class="btn btn-pdf" style="font-size: 14px; padding: 8px 16px; flex: 1;" onclick="downloadDirectPDF()">📥 一鍵下載完美單頁 PDF</button>
-            <!-- 瀏覽器選單列印 -->
-            <button class="btn btn-primary" style="font-size: 13px; padding: 8px 12px;" onclick="window.print()">🖨️ 系統列印</button>
-            <button class="btn btn-danger" style="font-size: 12px;" onclick="clearMonthData()">清空當月</button>
+        <div style="margin-top: 10px; display: flex; gap: 8px;">
+            <button class="btn btn-pdf" style="font-size: 13px; padding: 6px 12px; flex: 1;" onclick="downloadDirectPDF()">📥 一鍵下載完美單頁 PDF</button>
+            <button class="btn btn-primary" style="font-size: 13px; padding: 6px 12px;" onclick="window.print()">🖨️ 系統列印</button>
+            <button class="btn btn-danger" style="font-size: 11px;" onclick="clearMonthData()">清空當月</button>
         </div>
     </div>
 
-    <!-- 公司表格容器 -->
+    <!-- 表格容器 -->
     <div class="paper-container" id="pdfContainer">
-        <!-- 顏色標籤圖例 -->
+        <h2 class="title" id="tableHeader">添盈科技有限公司員工蔡崇欽115年07月份出勤紀錄</h2>
+
         <div class="color-legend no-print">
             <span style="color:#555;">🎨 標示：</span>
             <div class="legend-item"><div class="color-box" style="background-color: #ffffff;"></div>平日出勤</div>
@@ -308,27 +250,25 @@
             <div class="legend-item"><div class="color-box" style="background-color: #f3e5f5;"></div>請假</div>
         </div>
 
-        <h2 class="title" id="tableHeader">添盈科技有限公司員工蔡崇欽115年07月份出勤紀錄</h2>
-
         <table class="sheet-table" id="attendanceTable">
             <colgroup id="tableColGroup">
-                <col style="width: 7%;">  <!-- 出勤日期 -->
-                <col style="width: 5%;">  <!-- 約定上班 -->
-                <col style="width: 5%;">  <!-- 約定下班 -->
-                <col style="width: 5%;">  <!-- 實際上班 -->
-                <col style="width: 5%;">  <!-- 實際下班 -->
-                <col style="width: 5%;">  <!-- 休息始點 -->
-                <col style="width: 5%;">  <!-- 休息迄點 -->
-                <col style="width: 4%;">  <!-- 遲到 -->
-                <col style="width: 4%;">  <!-- 早退 -->
-                <col style="width: 5%;" class="col-leave">  <!-- 請假時數 -->
-                <col style="width: 5%;">  <!-- 加班起始 -->
-                <col style="width: 5%;">  <!-- 加班結束 -->
-                <col style="width: 5%;">  <!-- 加班總時數 -->
-                <col style="width: 7%;">  <!-- 實際出動總時數 -->
-                <col style="width: 14%;"> <!-- 備註 -->
-                <col style="width: 8%;">  <!-- 支出 -->
-                <col style="width: 6%;">  <!-- 金額 -->
+                <col style="width: 7.5%;"> <!-- 出勤日期 -->
+                <col style="width: 5.5%;"> <!-- 約定上班 -->
+                <col style="width: 5.5%;"> <!-- 約定下班 -->
+                <col style="width: 5.5%;"> <!-- 實際上班 -->
+                <col style="width: 5.5%;"> <!-- 實際下班 -->
+                <col style="width: 5.5%;"> <!-- 休息始點 -->
+                <col style="width: 5.5%;"> <!-- 休息迄點 -->
+                <col style="width: 4.5%;"> <!-- 遲到 -->
+                <col style="width: 4.5%;"> <!-- 早退 -->
+                <col style="width: 5.5%;" class="col-leave"> <!-- 請假時數 -->
+                <col style="width: 5.5%;"> <!-- 加班起始 -->
+                <col style="width: 5.5%;"> <!-- 加班結束 -->
+                <col style="width: 5.0%;"> <!-- 加班總時數 -->
+                <col style="width: 7.0%;"> <!-- 實際出動總時數 -->
+                <col style="width: 12.0%;"><!-- 備註 -->
+                <col style="width: 8.0%;"> <!-- 支出 -->
+                <col style="width: 6.5%;"> <!-- 金額 -->
             </colgroup>
             <thead>
                 <tr>
@@ -368,7 +308,6 @@
             </tfoot>
         </table>
 
-        <!-- 法規與註記 -->
         <div class="footer-notes">
             <div>註1：出勤紀錄，應逐日記載勞工出勤情形至分鐘為止。</div>
             <div>註2：雇主應置備勞工出勤紀錄，並保存五年。</div>
@@ -776,7 +715,6 @@
             }
         }
 
-        /* 單頁 PDF 下載功能 */
         function downloadDirectPDF() {
             const name = document.getElementById('empName').value || '';
             const y = document.getElementById('yearNum').value;
@@ -785,26 +723,25 @@
 
             const element = document.getElementById('pdfContainer');
             
+            const noPrintElems = element.querySelectorAll('.no-print');
+            noPrintElems.forEach(el => el.style.display = 'none');
+
             window.scrollTo(0, 0);
 
             const opt = {
-                margin:       [3, 3, 3, 3],
+                margin:       [4, 4, 4, 4],
                 filename:     fileName,
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { 
-                    scale: 2, 
-                    useCORS: true,
-                    scrollY: 0,
-                    scrollX: 0
-                },
+                html2canvas:  { scale: 2, useCORS: true, scrollY: 0, scrollX: 0 },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
                 pagebreak:    { mode: 'avoid-all' }
             };
 
-            html2pdf().set(opt).from(element).save();
+            html2pdf().set(opt).from(element).save().then(() => {
+                noPrintElems.forEach(el => el.style.display = '');
+            });
         }
 
-        /* 📲 匯出與匯入 */
         function exportData() {
             const allData = {};
             for (let i = 0; i < localStorage.length; i++) {
