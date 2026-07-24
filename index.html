@@ -134,17 +134,37 @@
 
         <!-- 單日修改與微調區 -->
         <form id="recordForm" onsubmit="saveRecord(event)">
-            <h4 style="margin:0 0 8px 0; color:#27ae60;">✏️ 單日微調（請假 / 增列支出 / 特殊備註）</h4>
+            <h4 style="margin:0 0 8px 0; color:#27ae60;">✏️ 單日微調（請假 / 加班 / 支出填寫）</h4>
             <div class="form-row">
                 <label>選擇日期：<select id="selectDate" onchange="loadSingleDayData()"></select></label>
                 <label>實際上班：<input type="time" id="stTime" value="08:30"></label>
                 <label>實際下班：<input type="time" id="edTime" value="17:30"></label>
                 <label>休息：<input type="time" id="rstSt" value="12:00"> ~ <input type="time" id="rstEd" value="13:00"></label>
             </div>
-            <div class="form-row">
-                <label>備註/事由：<input type="text" id="noteInput" placeholder="例如：台大 或 特休/家裡有事" style="width: 200px;"></label>
-                <label>支出項目：<input type="text" id="expNote" placeholder="油資/列印" style="width: 90px;"></label>
+
+            <!-- 加班填寫區 -->
+            <div class="form-row" style="background:#f9f9f9; padding:8px; border-radius:4px; border:1px dashed #ccc;">
+                <label style="color:#2a6496;">⏰ 加班時間：</label>
+                <label>起始：<input type="time" id="otStart" onchange="calcOT()"></label>
+                <label>結束：<input type="time" id="otEnd" onchange="calcOT()"></label>
+                <label>自動計算時數：<input type="text" id="otHours" placeholder="例如: 2" style="width: 60px;"> 小時</label>
+            </div>
+
+            <!-- 支出與備註區 -->
+            <div class="form-row" style="margin-top: 8px;">
+                <label>支出項目：
+                    <select id="expSelect" onchange="handleExpSelect()">
+                        <option value="">無支出</option>
+                        <option value="油資">油資</option>
+                        <option value="列印">列印</option>
+                        <option value="材料">材料</option>
+                        <option value="custom">其他 (自行輸入)</option>
+                    </select>
+                </label>
+                <input type="text" id="expCustom" placeholder="請輸入項目" style="display:none; width:100px;">
+                
                 <label>支出金額：<input type="number" id="expAmount" placeholder="185" style="width: 70px;"></label>
+                <label>備註/事由：<input type="text" id="noteInput" placeholder="例如：台大 或 特休/家裡有事" style="width: 180px;"></label>
                 <button type="submit" class="btn btn-success">更新此單日資料</button>
             </div>
         </form>
@@ -242,7 +262,7 @@
 
             const yearAD = parseInt(y) + 1911;
             const month = parseInt(m);
-            const daysInMonth = new Date(yearAD, month - 1, 0).getDate() || new Date(yearAD, month, 0).getDate();
+            const daysInMonth = new Date(yearAD, month, 0).getDate();
             const weekNames = ["(日)", "(一)", "(二)", "(三)", "(四)", "(五)", "(六)"];
 
             const dateSelect = document.getElementById('selectDate');
@@ -284,7 +304,6 @@
 
                 const tr = document.createElement('tr');
 
-                // 六日標註黃橘色底
                 if (dayOfWeek === 0 || dayOfWeek === 6) {
                     tr.classList.add('weekend-row');
                 }
@@ -296,7 +315,11 @@
                     <td>${data.edTime || ''}</td>
                     <td>${data.rstSt || ''}</td>
                     <td>${data.rstEd || ''}</td>
-                    <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                    <td></td><td></td><td></td>
+                    <td>${data.otStart || ''}</td>
+                    <td>${data.otEnd || ''}</td>
+                    <td>${data.otHours || ''}</td>
+                    <td></td>
                     <td style="white-space: pre-line;">${data.noteInput || ''}</td>
                     <td>${data.expNote || ''}</td>
                     <td>${data.expAmount ? '$' + data.expAmount : ''}</td>
@@ -307,7 +330,32 @@
             document.getElementById('totalExpense').innerText = totalExp > 0 ? '$' + totalExp : '$0';
         }
 
-        // ⚡ 一鍵批次填寫（僅填寫週一至週五平日）
+        // 自動計算加班時數
+        function calcOT() {
+            const start = document.getElementById('otStart').value;
+            const end = document.getElementById('otEnd').value;
+            if (start && end) {
+                const s = new Date(`1970-01-01T${start}:00`);
+                const e = new Date(`1970-01-01T${end}:00`);
+                let diff = (e - s) / (1000 * 60 * 60);
+                if (diff < 0) diff += 24; // 跨夜處理
+                document.getElementById('otHours').value = diff > 0 ? diff.toFixed(1).replace('.0', '') : '';
+            }
+        }
+
+        // 處理支出選單切換
+        function handleExpSelect() {
+            const val = document.getElementById('expSelect').value;
+            const customInput = document.getElementById('expCustom');
+            if (val === 'custom') {
+                customInput.style.display = 'inline-block';
+                customInput.value = '';
+            } else {
+                customInput.style.display = 'none';
+            }
+        }
+
+        // ⚡ 一鍵批次填寫
         function applyBatchWork() {
             if (!confirm("確定要將本月所有『週一至週五』批次填入預設的上下班時間嗎？")) return;
 
@@ -330,22 +378,17 @@
                 const dateObj = new Date(yearAD, month - 1, day);
                 const dayOfWeek = dateObj.getDay();
 
-                // 排除星期六(6)與星期日(0)
                 if (dayOfWeek !== 0 && dayOfWeek !== 6) {
                     const dateKey = `${month}/${day} ${weekNames[dayOfWeek]}`;
-                    
-                    // 保留原本可能已填寫的支出金額，僅覆蓋時間與備註
-                    const oldExpNote = currentRecords[dateKey]?.expNote || '';
-                    const oldExpAmt = currentRecords[dateKey]?.expAmount || '';
+                    const oldData = currentRecords[dateKey] || {};
 
                     currentRecords[dateKey] = {
+                        ...oldData,
                         stTime: bSt,
                         edTime: bEd,
                         rstSt: bRstSt,
                         rstEd: bRstEd,
-                        noteInput: bNote,
-                        expNote: oldExpNote,
-                        expAmount: oldExpAmt
+                        noteInput: bNote
                     };
                 }
             }
@@ -355,7 +398,7 @@
             alert("已成功完成全月平日的批次填寫！");
         }
 
-        // 當切換單日下拉選單時，自動載入該日已填寫的資料到輸入框
+        // 當切換單日下拉選單時，載入歷史資料
         function loadSingleDayData() {
             const dateKey = document.getElementById('selectDate').value;
             const currentRecords = JSON.parse(localStorage.getItem(getStorageKey())) || {};
@@ -366,8 +409,25 @@
             document.getElementById('rstSt').value = data.rstSt || "12:00";
             document.getElementById('rstEd').value = data.rstEd || "13:00";
             document.getElementById('noteInput').value = data.noteInput || "";
-            document.getElementById('expNote').value = data.expNote || "";
             document.getElementById('expAmount').value = data.expAmount || "";
+            
+            document.getElementById('otStart').value = data.otStart || "";
+            document.getElementById('otEnd').value = data.otEnd || "";
+            document.getElementById('otHours').value = data.otHours || "";
+
+            // 回顯支出項目選單
+            const expVal = data.expNote || "";
+            const expSelect = document.getElementById('expSelect');
+            const expCustom = document.getElementById('expCustom');
+
+            if (["油資", "列印", "材料", ""].includes(expVal)) {
+                expSelect.value = expVal;
+                expCustom.style.display = "none";
+            } else {
+                expSelect.value = "custom";
+                expCustom.style.display = "inline-block";
+                expCustom.value = expVal;
+            }
         }
 
         // 儲存單日修改
@@ -377,13 +437,22 @@
             const currentRecords = JSON.parse(localStorage.getItem(storageKey)) || {};
             const dateKey = document.getElementById('selectDate').value;
 
+            // 取得支出項目名稱
+            let finalExpNote = document.getElementById('expSelect').value;
+            if (finalExpNote === 'custom') {
+                finalExpNote = document.getElementById('expCustom').value;
+            }
+
             currentRecords[dateKey] = {
                 stTime: document.getElementById('stTime').value,
                 edTime: document.getElementById('edTime').value,
                 rstSt: document.getElementById('rstSt').value,
                 rstEd: document.getElementById('rstEd').value,
+                otStart: document.getElementById('otStart').value,
+                otEnd: document.getElementById('otEnd').value,
+                otHours: document.getElementById('otHours').value,
                 noteInput: document.getElementById('noteInput').value,
-                expNote: document.getElementById('expNote').value,
+                expNote: finalExpNote,
                 expAmount: document.getElementById('expAmount').value
             };
 
