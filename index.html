@@ -5,11 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>添盈科技有限公司員工出勤紀錄表</title>
     <style>
-        /* 基礎樣式 */
         * { box-sizing: border-box; }
         body { font-family: "Microsoft JhengHei", "微軟正黑體", Arial, sans-serif; margin: 15px; color: #000; background-color: #f0f2f5; }
 
-        /* 網頁版操作面板 (列印時會隱藏) */
+        /* 網頁面板 (列印時隱藏) */
         .no-print {
             background: #ffffff;
             padding: 15px;
@@ -25,7 +24,7 @@
         .btn-success { background-color: #28a745; }
         .btn-danger { background-color: #dc3545; }
 
-        /* A4 列印與公司表格標準格式 */
+        /* A4 紙張與標準表格 */
         .paper-container {
             background: white;
             width: 100%;
@@ -48,17 +47,25 @@
             border-collapse: collapse;
             font-size: 11px;
             text-align: center;
+            table-layout: fixed; /* 固定欄寬避免右側跑版 */
         }
 
         table.sheet-table th, table.sheet-table td {
             border: 1px solid #000;
-            padding: 4px 2px;
+            padding: 3px 1px;
             height: 22px;
+            word-break: break-all;
         }
 
         table.sheet-table th {
             background-color: #f2f2f2;
             font-weight: bold;
+        }
+
+        /* 假日/六日標註色彩 */
+        .weekend-row {
+            background-color: #fff0f0 !important; /* 淺紅色背景 */
+            color: #d9534f;
         }
 
         .footer-notes {
@@ -67,35 +74,36 @@
             line-height: 1.4;
         }
 
-        /* 專門處理列印樣式 (點擊列印/存成PDF時效果) */
+        /* 列印專用 CSS */
         @media print {
             body { background: white; margin: 0; padding: 0; }
             .no-print { display: none !important; }
             .paper-container { box-shadow: none; padding: 0; width: 100%; max-width: none; }
-            @page { size: A4 portrait; margin: 10mm; }
+            @page { size: A4 portrait; margin: 8mm; }
             th { background-color: #f2f2f2 !important; -webkit-print-color-adjust: exact; }
+            .weekend-row { background-color: #fff0f0 !important; -webkit-print-color-adjust: exact; }
         }
     </style>
 </head>
 <body>
 
-    <!-- 1. 每日輸入與控制面板 (畫面上看得見，列印時自動隱藏) -->
+    <!-- 操作面板 -->
     <div class="no-print">
-        <h3 style="margin-top:0;">📝 每日打卡填寫面板</h3>
+        <h3 style="margin-top:0;">📝 出勤紀錄管理系統</h3>
         <div class="form-row">
             <label>員工姓名：<input type="text" id="empName" value="蔡崇欽" style="width: 80px;"></label>
-            <label>年份：<input type="number" id="yearNum" value="115" style="width: 60px;"> 年</label>
-            <label>月份：
-                <select id="monthNum" onchange="generateMonthDays()">
-                    <option value="01">01</option><option value="02">02</option>
-                    <option value="03">03</option><option value="04">04</option>
-                    <option value="05">05</option><option value="06" selected>06</option>
-                    <option value="07">07</option><option value="08">08</option>
-                    <option value="09">09</option><option value="10">10</option>
-                    <option value="11">11</option><option value="12">12</option>
-                </select> 月
+            <label>選擇年份：<input type="number" id="yearNum" value="115" style="width: 60px;" onchange="loadMonthData()"> 年</label>
+            <label>選擇月份：
+                <select id="monthNum" onchange="loadMonthData()">
+                    <option value="01">01 月</option><option value="02">02 月</option>
+                    <option value="03">03 月</option><option value="04">04 月</option>
+                    <option value="05">05 月</option><option value="06" selected>06 月</option>
+                    <option value="07">07 月</option><option value="08">08 月</option>
+                    <option value="09">09 月</option><option value="10">10 月</option>
+                    <option value="11">11 月</option><option value="12">12 月</option>
+                </select>
             </label>
-            <button class="btn btn-primary" onclick="updateHeader()">更新表頭資訊</button>
+            <button class="btn btn-primary" onclick="loadMonthData()">切換 / 載入月份資料</button>
         </div>
 
         <hr style="border: 0.5px solid #eee; margin: 12px 0;">
@@ -108,65 +116,76 @@
                 <label>休息：<input type="time" id="rstSt" value="12:00"> ~ <input type="time" id="rstEd" value="13:00"></label>
             </div>
             <div class="form-row">
-                <label>備註地點/事由：<input type="text" id="noteInput" placeholder="例如：台大 或 特休/家裡有事" style="width: 200px;"></label>
-                <label>支出項目：<input type="text" id="expNote" placeholder="例如：油資/列印" style="width: 100px;"></label>
-                <label>支出金額：<input type="number" id="expAmount" placeholder="185" style="width: 80px;"></label>
-                <button type="submit" class="btn btn-success">儲存此日紀錄</button>
+                <label>備註/事由：<input type="text" id="noteInput" placeholder="例如：台大 或 特休/家裡有事" style="width: 200px;"></label>
+                <label>支出項目：<input type="text" id="expNote" placeholder="油資/列印" style="width: 90px;"></label>
+                <label>支出金額：<input type="number" id="expAmount" placeholder="185" style="width: 70px;"></label>
+                <button type="submit" class="btn btn-success">儲存日紀錄</button>
             </div>
         </form>
 
         <div style="margin-top: 15px;">
-            <button class="btn btn-primary" style="background:#17a2b8;" onclick="window.print()">🖨️ 匯出與公司相同格式之 PDF</button>
-            <button class="btn btn-danger" style="margin-left:10px;" onclick="clearAllData()">清空本月資料</button>
+            <button class="btn btn-primary" style="background:#17a2b8;" onclick="window.print()">🖨️ 匯出 PDF / 列印</button>
+            <button class="btn btn-danger" style="margin-left:10px;" onclick="clearMonthData()">清空【當月】資料</button>
         </div>
     </div>
 
-    <!-- 2. 完全還原公司樣式的表格區塊 -->
+    <!-- 公司表格標準格式 -->
     <div class="paper-container">
         <h2 class="title" id="tableHeader">添盈科技有限公司員工蔡崇欽115年06月份出勤紀錄</h2>
 
         <table class="sheet-table">
+            <colgroup>
+                <col style="width: 9%;"> <!-- 出勤日期 -->
+                <col style="width: 6%;"> <!-- 约定上班 -->
+                <col style="width: 6%;"> <!-- 约定下班 -->
+                <col style="width: 6%;"> <!-- 实际上班 -->
+                <col style="width: 6%;"> <!-- 实际下班 -->
+                <col style="width: 6%;"> <!-- 休息始 -->
+                <col style="width: 6%;"> <!-- 休息迄 -->
+                <col style="width: 5%;"> <!-- 遲到 -->
+                <col style="width: 5%;"> <!-- 早退 -->
+                <col style="width: 6%;"> <!-- 請假時數 -->
+                <col style="width: 6%;"> <!-- 加班始 -->
+                <col style="width: 6%;"> <!-- 加班迄 -->
+                <col style="width: 7%;"> <!-- 實際總時數 -->
+                <col style="width: 12%;"> <!-- 備註 -->
+                <col style="width: 8%;"> <!-- 支出項目 -->
+                <col style="width: 6%;"> <!-- 支出金額 -->
+            </colgroup>
             <thead>
                 <tr>
-                    <th rowspan="3" style="width: 8%;">出勤日期</th>
+                    <th rowspan="2">出勤日期</th>
                     <th colspan="2">約定出動時間</th>
                     <th colspan="2">實際出動時間</th>
                     <th colspan="2">休息時間</th>
                     <th colspan="2">考勤狀況(分)</th>
-                    <th rowspan="3" style="width: 6%;">請假<br>時數</th>
+                    <th rowspan="2">請假<br>時數</th>
                     <th colspan="2">加班</th>
-                    <th rowspan="3" style="width: 8%;">實際出動<br>總時數</th>
-                    <th rowspan="3" style="width: 18%;">備註</th>
+                    <th rowspan="2">實際出動<br>總時數</th>
+                    <th rowspan="2">備註</th>
                     <th colspan="2">支出</th>
                 </tr>
                 <tr>
-                    <th rowspan="2">上班</th>
-                    <th rowspan="2">下班</th>
-                    <th rowspan="2">上班</th>
-                    <th rowspan="2">下班</th>
-                    <th rowspan="2">始點</th>
-                    <th rowspan="2">迄點</th>
-                    <th rowspan="2">遲到</th>
-                    <th rowspan="2">早退</th>
-                    <th rowspan="2">起始時間</th>
-                    <th rowspan="2">結束時間</th>
-                    <th rowspan="2">項目/備註</th>
-                    <th rowspan="2">金額</th>
+                    <th>上班</th><th>下班</th>
+                    <th>上班</th><th>下班</th>
+                    <th>始點</th><th>迄點</th>
+                    <th>遲到</th><th>早退</th>
+                    <th>起始時間</th><th>結束時間</th>
+                    <th>項目/備註</th><th>金額</th>
                 </tr>
-                <tr></tr>
             </thead>
             <tbody id="sheetBody">
-                <!-- 由 JavaScript 動態生成日期與填入的內容 -->
+                <!-- 動態生成紀錄 -->
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="14" style="text-align: right; font-weight: bold; padding-right: 15px;">總計</td>
-                    <td colspan="2" id="totalExpense" style="font-weight: bold; color: red;">$0</td>
+                    <td colspan="15" style="text-align: right; font-weight: bold; padding-right: 10px;">總計</td>
+                    <td id="totalExpense" style="font-weight: bold; color: red;">$0</td>
                 </tr>
             </tfoot>
         </table>
 
-        <!-- 法規與註記 (完全還原) -->
+        <!-- 法規與註記 -->
         <div class="footer-notes">
             <div>註1：出勤紀錄，應逐日記載勞工出勤情形至分鐘為止。</div>
             <div>註2：雇主應置備勞工出勤紀錄，並保存五年。</div>
@@ -176,55 +195,56 @@
     </div>
 
     <script>
-        let currentRecords = JSON.parse(localStorage.getItem('company_attendance')) || {};
+        // 儲存格式為 key-value，例如: attendance_115_06
+        function getStorageKey() {
+            const y = document.getElementById('yearNum').value;
+            const m = document.getElementById('monthNum').value;
+            return `attendance_${y}_${m}`;
+        }
 
-        function updateHeader() {
+        function loadMonthData() {
             const name = document.getElementById('empName').value;
             const y = document.getElementById('yearNum').value;
             const m = document.getElementById('monthNum').value;
-            document.getElementById('tableHeader').innerText = `添盈科技有限公司員工${name}${y}年${m}月份出勤紀錄`;
-        }
-
-        function generateMonthDays() {
-            updateHeader();
-            const yRoc = parseInt(document.getElementById('yearNum').value);
-            const yearAD = yRoc + 1911;
-            const month = parseInt(document.getElementById('monthNum').value);
             
+            // 更新表頭
+            document.getElementById('tableHeader').innerText = `添盈科技有限公司員工${name}${y}年${m}月份出勤紀錄`;
+
+            const yearAD = parseInt(y) + 1911;
+            const month = parseInt(m);
             const daysInMonth = new Date(yearAD, month, 0).getDate();
-            const weekNames = ["(日)", "(-)", "(二)", "(三)", "(四)", "(五)", "(六)"];
+            
+            // 正確的星期格式：(一) ~ (日)
+            const weekNames = ["(日)", "(一)", "(二)", "(三)", "(四)", "(五)", "(六)"];
 
             const dateSelect = document.getElementById('selectDate');
             dateSelect.innerHTML = '';
+
+            const currentRecords = JSON.parse(localStorage.getItem(getStorageKey())) || {};
 
             for (let day = 1; day <= daysInMonth; day++) {
                 const dateObj = new Date(yearAD, month - 1, day);
                 const weekStr = weekNames[dateObj.getDay()];
                 const dateKey = `${month}/${day} ${weekStr}`;
-                
+
                 const opt = document.createElement('option');
                 opt.value = dateKey;
                 opt.innerText = dateKey;
                 dateSelect.appendChild(opt);
             }
-            renderTable();
+
+            renderTable(daysInMonth, yearAD, month, weekNames, currentRecords);
         }
 
-        function renderTable() {
-            const yRoc = parseInt(document.getElementById('yearNum').value);
-            const yearAD = yRoc + 1911;
-            const month = parseInt(document.getElementById('monthNum').value);
-            const daysInMonth = new Date(yearAD, month, 0).getDate();
-            const weekNames = ["(日)", "(-)", "(二)", "(三)", "(四)", "(五)", "(六)"];
-
+        function renderTable(daysInMonth, yearAD, month, weekNames, currentRecords) {
             const tbody = document.getElementById('sheetBody');
             tbody.innerHTML = '';
-
             let totalExp = 0;
 
             for (let day = 1; day <= daysInMonth; day++) {
                 const dateObj = new Date(yearAD, month - 1, day);
-                const weekStr = weekNames[dateObj.getDay()];
+                const dayOfWeek = dateObj.getDay(); // 0 = 週日, 6 = 週六
+                const weekStr = weekNames[dayOfWeek];
                 const dateKey = `${month}/${day} ${weekStr}`;
 
                 const data = currentRecords[dateKey] || {};
@@ -233,14 +253,13 @@
                     totalExp += parseFloat(data.expAmount) || 0;
                 }
 
-                // 組合備註 (包含地點與支出備註)
-                let fullNote = data.noteInput || '';
-                let expItem = data.expNote || '';
-                if (expItem && !fullNote.includes(expItem)) {
-                    fullNote = expItem + '\n' + fullNote;
+                const tr = document.createElement('tr');
+
+                // 判斷是否為六日（或可擴充國定假日）
+                if (dayOfWeek === 0 || dayOfWeek === 6) {
+                    tr.classList.add('weekend-row');
                 }
 
-                const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${dateKey}</td>
                     <td></td><td></td>
@@ -249,43 +268,47 @@
                     <td>${data.rstSt || ''}</td>
                     <td>${data.rstEd || ''}</td>
                     <td></td><td></td><td></td><td></td><td></td><td></td>
-                    <td style="white-space: pre-line;">${fullNote}</td>
+                    <td style="white-space: pre-line;">${data.noteInput || ''}</td>
+                    <td>${data.expNote || ''}</td>
                     <td>${data.expAmount ? '$' + data.expAmount : ''}</td>
                 `;
                 tbody.appendChild(tr);
             }
 
-            document.getElementById('totalExpense').innerText = '$' + totalExp;
-            localStorage.setItem('company_attendance', JSON.stringify(currentRecords));
+            document.getElementById('totalExpense').innerText = totalExp > 0 ? '$' + totalExp : '$0';
         }
 
         function saveRecord(e) {
             e.preventDefault();
+            const storageKey = getStorageKey();
+            const currentRecords = JSON.parse(localStorage.getItem(storageKey)) || {};
             const dateKey = document.getElementById('selectDate').value;
-            
+
             currentRecords[dateKey] = {
                 stTime: document.getElementById('stTime').value,
                 edTime: document.getElementById('edTime').value,
                 rstSt: document.getElementById('rstSt').value,
-                rstEd: document.getElementById('rstEd].value') || document.getElementById('rstEd').value,
+                rstEd: document.getElementById('rstEd').value,
                 noteInput: document.getElementById('noteInput').value,
                 expNote: document.getElementById('expNote').value,
                 expAmount: document.getElementById('expAmount').value
             };
 
-            renderTable();
-            alert(`已成功儲存 ${dateKey} 的出勤資料！`);
+            localStorage.setItem(storageKey, JSON.stringify(currentRecords));
+            loadMonthData();
+            alert(`已成功儲存 ${dateKey} 資料！`);
         }
 
-        function clearAllData() {
-            if (confirm('確定要清空本月的所有紀錄嗎？')) {
-                currentRecords = {};
-                renderTable();
+        function clearMonthData() {
+            const m = document.getElementById('monthNum').value;
+            if (confirm(`確定要清空 ${m} 月的所有打卡紀錄嗎？`)) {
+                localStorage.removeItem(getStorageKey());
+                loadMonthData();
             }
         }
 
-        // 初始化
-        generateMonthDays();
+        // 頁面初次載入
+        loadMonthData();
     </script>
 </body>
 </html>
