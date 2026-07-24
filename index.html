@@ -134,7 +134,7 @@
 
         <!-- 單日修改與微調區 -->
         <form id="recordForm" onsubmit="saveRecord(event)">
-            <h4 style="margin:0 0 8px 0; color:#27ae60;">✏️ 單日微調（請假 / 加班 / 支出填寫）</h4>
+            <h4 style="margin:0 0 8px 0; color:#27ae60;">✏️ 單日微調（請假 / 假日加班 / 支出填寫）</h4>
             <div class="form-row">
                 <label>選擇日期：<select id="selectDate" onchange="loadSingleDayData()"></select></label>
                 <label>實際上班：<input type="time" id="stTime" value="08:30"></label>
@@ -147,7 +147,8 @@
                 <label style="color:#2a6496;">⏰ 加班時間：</label>
                 <label>起始：<input type="time" id="otStart" onchange="calcOT()"></label>
                 <label>結束：<input type="time" id="otEnd" onchange="calcOT()"></label>
-                <label>自動計算時數：<input type="text" id="otHours" placeholder="例如: 2" style="width: 60px;"> 小時</label>
+                <button type="button" class="btn" style="background:#6c757d; font-size:11px; padding:3px 8px;" onclick="setHolidayOT()">快速帶入假日加班(08:30~17:30)</button>
+                <label>加班時數：<input type="text" id="otHours" placeholder="例如: 8" style="width: 60px;"> 小時</label>
             </div>
 
             <!-- 支出與備註區 -->
@@ -330,17 +331,34 @@
             document.getElementById('totalExpense').innerText = totalExp > 0 ? '$' + totalExp : '$0';
         }
 
-        // 自動計算加班時數
+        // 自動計算加班時數 (包含扣除 12:00~13:00 休息時間邏輯)
         function calcOT() {
             const start = document.getElementById('otStart').value;
             const end = document.getElementById('otEnd').value;
+            const rstSt = document.getElementById('rstSt').value || "12:00";
+            const rstEd = document.getElementById('rstEd').value || "13:00";
+
             if (start && end) {
                 const s = new Date(`1970-01-01T${start}:00`);
                 const e = new Date(`1970-01-01T${end}:00`);
                 let diff = (e - s) / (1000 * 60 * 60);
+
                 if (diff < 0) diff += 24; // 跨夜處理
+
+                // 如果加班區塊跨越了休息時間（如 08:30 到 17:30 包裹了 12:00~13:00），自動扣除 1 小時休息
+                if (start <= rstSt && end >= rstEd && diff > 1) {
+                    diff -= 1;
+                }
+
                 document.getElementById('otHours').value = diff > 0 ? diff.toFixed(1).replace('.0', '') : '';
             }
+        }
+
+        // 快速帶入假日加班 08:30 ~ 17:30
+        function setHolidayOT() {
+            document.getElementById('otStart').value = "08:30";
+            document.getElementById('otEnd').value = "17:30";
+            calcOT(); // 會自動帶出 8 小時
         }
 
         // 處理支出選單切換
@@ -355,7 +373,7 @@
             }
         }
 
-        // ⚡ 一鍵批次填寫
+        // ⚡ 一鍵批次填寫平日
         function applyBatchWork() {
             if (!confirm("確定要將本月所有『週一至週五』批次填入預設的上下班時間嗎？")) return;
 
@@ -437,7 +455,6 @@
             const currentRecords = JSON.parse(localStorage.getItem(storageKey)) || {};
             const dateKey = document.getElementById('selectDate').value;
 
-            // 取得支出項目名稱
             let finalExpNote = document.getElementById('expSelect').value;
             if (finalExpNote === 'custom') {
                 finalExpNote = document.getElementById('expCustom').value;
