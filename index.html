@@ -61,7 +61,7 @@
         .legend-item { display: flex; align-items: center; gap: 5px; }
         .color-box { width: 16px; height: 16px; border-radius: 3px; border: 1px solid #ccc; }
 
-        /* A4 紙張與標準表格容器 */
+        /* A4 紙張與標準表格容器：保持 PC 端原始樣式數值不變 */
         .paper-container {
             background: white;
             width: 100%;
@@ -71,7 +71,7 @@
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
 
-        /* 抬頭字級再次加大調整 */
+        /* 抬頭字級維持原本的設定值 */
         h2.title {
             text-align: center;
             font-size: 25px;
@@ -81,7 +81,7 @@
             color: #1a252f;
         }
 
-        /* 表格結構樣式 */
+        /* 表格結構樣式：維持 PC 端原有數值與排版 */
         table.sheet-table {
             width: 100%;
             border-collapse: collapse;
@@ -135,11 +135,43 @@
             color: #555;
         }
 
-        /* 列印專用 CSS (自動隱藏操作區與最佳化邊界) */
+        /* 📱 手機端視覺專屬最佳化 (完全不影響 PC 檢視與列印數值) */
+        @media screen and (max-width: 768px) {
+            body {
+                margin: 6px;
+                background-color: #e4e7eb;
+            }
+            .no-print {
+                padding: 10px;
+                margin-bottom: 12px;
+            }
+            .form-row {
+                gap: 6px;
+                margin-bottom: 8px;
+            }
+            /* 讓手機端的表格外層具備水平滑動能力，避免擠壓變形或超出螢幕 */
+            .paper-container {
+                padding: 10px 6px;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            /* 在手機小螢幕上強制表格擁有最小寬度，確保內容清晰好點擊與檢視 */
+            table.sheet-table {
+                min-width: 780px;
+            }
+            /* 輕微加大手機螢幕下的觸控點與行高，解決手指點擊過小問題 */
+            table.sheet-table th, table.sheet-table td {
+                height: 28px;
+                padding: 4px 3px;
+                font-size: 11.5px;
+            }
+        }
+
+        /* 列印專用 CSS (自動隱藏操作區與最佳化邊界，維持原本列印數值完美不變) */
         @media print {
             body { background: white; margin: 0; padding: 0; }
             .no-print { display: none !important; }
-            .paper-container { box-shadow: none; padding: 0; width: 100%; max-width: none; }
+            .paper-container { box-shadow: none; padding: 0; width: 100%; max-width: none; overflow: visible; }
             @page { size: A4 portrait; margin: 8mm; }
             th { background-color: #dce8f5 !important; color: #1c2d42 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .weekend-row td { background-color: #fff3e0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
