@@ -6,7 +6,7 @@
     <title>添盈科技有限公司員工出勤紀錄表</title>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: "Microsoft JhengHei", "微軟正黑體", Arial, sans-serif; margin: 15px; color: #000; background-color: #f0f2f5; }
+        body { font-family: "Microsoft JhengHei", "微軟正黑體", Arial, sans-serif; margin: 15px; color: #333; background-color: #f0f2f5; }
 
         /* 網頁面板 (列印時隱藏) */
         .no-print {
@@ -41,6 +41,17 @@
             margin-bottom: 10px;
         }
 
+        /* 顏色圖例說明標籤 */
+        .color-legend {
+            display: flex;
+            gap: 15px;
+            font-size: 12px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .legend-item { display: flex; align-items: center; gap: 5px; }
+        .color-box { width: 16px; height: 16px; border-radius: 3px; border: 1px solid #ccc; }
+
         /* A4 紙張與標準表格容器 */
         .paper-container {
             background: white;
@@ -57,51 +68,65 @@
             font-weight: bold;
             margin: 5px 0 15px 0;
             letter-spacing: 1px;
+            color: #1a252f;
         }
 
-        /* 表格結構 */
+        /* 表格美化樣式 */
         table.sheet-table {
             width: 100%;
             border-collapse: collapse;
             font-size: 11px;
             text-align: center;
             table-layout: fixed;
-            border: 2px solid #000;
+            border: 2px solid #2c3e50;
         }
 
         table.sheet-table th, table.sheet-table td {
-            border: 1px solid #000;
+            border: 1px solid #34495e;
             padding: 3px 1px;
             height: 22px;
             word-break: break-all;
             vertical-align: middle;
         }
 
+        /* 表格標頭：典雅深藍灰背景 */
         table.sheet-table th {
-            background-color: #ffffff;
-            font-weight: normal;
-            color: #000;
+            background-color: #34495e !important;
+            color: #ffffff !important;
+            font-weight: bold;
         }
 
-        /* 六日背景色 (柔和橘黃色) */
+        /* 平常工作日懸停效果 */
+        table.sheet-table tbody tr:hover {
+            background-color: #f1f2f6;
+        }
+
+        /* 顏色設定：六日休假背景 (暖橙色/杏色) */
         .weekend-row td {
-            background-color: #ffedd5 !important;
+            background-color: #fff3e0 !important;
+        }
+
+        /* 顏色設定：請假背景 (柔和粉紫色) */
+        .leave-row td {
+            background-color: #f3e5f5 !important;
         }
 
         .footer-notes {
             margin-top: 10px;
             font-size: 10px;
             line-height: 1.4;
+            color: #555;
         }
 
-        /* 列印專用 CSS */
+        /* 列印專用 CSS (確保列印時色彩能正確輸出) */
         @media print {
             body { background: white; margin: 0; padding: 0; }
             .no-print { display: none !important; }
             .paper-container { box-shadow: none; padding: 0; width: 100%; max-width: none; }
             @page { size: A4 portrait; margin: 8mm; }
-            th { background-color: #ffffff !important; -webkit-print-color-adjust: exact; }
-            .weekend-row td { background-color: #ffedd5 !important; -webkit-print-color-adjust: exact; }
+            th { background-color: #34495e !important; color: #ffffff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .weekend-row td { background-color: #fff3e0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .leave-row td { background-color: #f3e5f5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
     </style>
 </head>
@@ -109,7 +134,7 @@
 
     <!-- 操作面板 -->
     <div class="no-print">
-        <h3 style="margin-top:0;">📝 出勤紀錄管理系統</h3>
+        <h3 style="margin-top:0; color:#2c3e50;">📝 出勤紀錄管理系統</h3>
         
         <!-- 基本設定區 -->
         <div class="form-row">
@@ -166,7 +191,7 @@
                         </select>
                     </label>
                     <input type="text" id="leaveCustom" placeholder="例如：補假/產假" style="display:none; width:120px;" oninput="applyLeaveType()">
-                    <span style="font-size:12px; color:#666;">（勾選請假後，當日不會顯示上下班與休息時間，假別自動填入備註）</span>
+                    <span style="font-size:12px; color:#666;">（勾選請假後，表格當日會以紫色底色呈現）</span>
                 </div>
             </div>
 
@@ -211,8 +236,16 @@
         </div>
     </div>
 
-    <!-- 公司表格 -->
+    <!-- 公司表格容器 -->
     <div class="paper-container">
+        <!-- 顏色標籤圖例 -->
+        <div class="color-legend no-print">
+            <span style="color:#555;">🎨 底色標示說明：</span>
+            <div class="legend-item"><div class="color-box" style="background-color: #ffffff;"></div>平日正常出勤</div>
+            <div class="legend-item"><div class="color-box" style="background-color: #fff3e0;"></div>例假日/休息日</div>
+            <div class="legend-item"><div class="color-box" style="background-color: #f3e5f5;"></div>請假 (特休/事假等)</div>
+        </div>
+
         <h2 class="title" id="tableHeader">添盈科技有限公司員工蔡崇欽115年06月份出勤紀錄</h2>
 
         <table class="sheet-table">
@@ -267,8 +300,8 @@
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="16" style="text-align: right; font-weight: bold; padding-right: 10px;">總計</td>
-                    <td id="totalExpense" style="font-weight: bold; color: red;">$0</td>
+                    <td colspan="16" style="text-align: right; font-weight: bold; padding-right: 10px; background-color: #f8f9fa;">總計</td>
+                    <td id="totalExpense" style="font-weight: bold; color: #d9534f; background-color: #f8f9fa;">$0</td>
                 </tr>
             </tfoot>
         </table>
@@ -339,13 +372,15 @@
                 }
 
                 const tr = document.createElement('tr');
+                const isLeave = data.isLeave === true;
 
-                if (dayOfWeek === 0 || dayOfWeek === 6) {
+                // 判斷底色類別（請假優先於假日）
+                if (isLeave) {
+                    tr.classList.add('leave-row');
+                } else if (dayOfWeek === 0 || dayOfWeek === 6) {
                     tr.classList.add('weekend-row');
                 }
 
-                // 如果是請假狀態，出勤與休息時間皆為空白
-                const isLeave = data.isLeave === true;
                 const stTime = isLeave ? '' : (data.stTime || '');
                 const edTime = isLeave ? '' : (data.edTime || '');
                 const rstSt = isLeave ? '' : (data.rstSt || '');
@@ -373,7 +408,6 @@
             document.getElementById('totalExpense').innerText = totalExp > 0 ? '$' + totalExp : '$0';
         }
 
-        // 切換「當日請假」模式
         function toggleLeaveMode() {
             const isLeave = document.getElementById('isLeave').checked;
             const leaveSection = document.getElementById('leaveSection');
@@ -385,7 +419,6 @@
                 workTimeSection.style.display = 'none';
                 otSection.style.display = 'none';
                 
-                // 清空加班時間
                 document.getElementById('otStart').value = '';
                 document.getElementById('otEnd').value = '';
                 document.getElementById('otHours').value = '';
@@ -398,7 +431,6 @@
             }
         }
 
-        // 當選擇假別時，自動套用到備註欄
         function applyLeaveType() {
             const leaveType = document.getElementById('leaveType').value;
             const leaveCustom = document.getElementById('leaveCustom');
@@ -414,7 +446,6 @@
             document.getElementById('noteInput').value = text;
         }
 
-        // 自動計算加班時數
         function calcOT() {
             const start = document.getElementById('otStart').value;
             const end = document.getElementById('otEnd').value;
@@ -515,7 +546,6 @@
             document.getElementById('otEnd').value = data.otEnd || "";
             document.getElementById('otHours').value = data.otHours || "";
 
-            // 處理請假選單與介面隱藏
             toggleLeaveMode();
 
             if (isLeave) {
@@ -531,7 +561,6 @@
                 }
             }
 
-            // 回顯支出項目選單
             const expVal = data.expNote || "";
             const expSelect = document.getElementById('expSelect');
             const expCustom = document.getElementById('expCustom');
