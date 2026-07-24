@@ -24,6 +24,7 @@
         .btn-success { background-color: #28a745; }
         .btn-warning { background-color: #e67e22; }
         .btn-danger { background-color: #dc3545; }
+        .btn-sync { background-color: #6f42c1; } /* 同步專用紫色 */
 
         .batch-box {
             background-color: #fff8e7;
@@ -36,9 +37,17 @@
         .leave-box {
             background-color: #eef7ff;
             border: 1px solid #bae0ff;
-            padding: 8px 12px;
+            padding: 10px 12px;
             border-radius: 6px;
             margin-bottom: 10px;
+        }
+
+        .sync-box {
+            background-color: #f3e8ff;
+            border: 1px solid #d8b4fe;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-top: 15px;
         }
 
         /* 顏色圖例說明標籤 */
@@ -118,7 +127,7 @@
             color: #555;
         }
 
-        /* 列印專用 CSS (確保列印時色彩能正確輸出) */
+        /* 列印專用 CSS */
         @media print {
             body { background: white; margin: 0; padding: 0; }
             .no-print { display: none !important; }
@@ -172,13 +181,13 @@
             <div class="form-row">
                 <label>選擇日期：<select id="selectDate" onchange="loadSingleDayData()"></select></label>
                 <label style="color: #d9534f; cursor: pointer; margin-left:10px;">
-                    <input type="checkbox" id="isLeave" onchange="toggleLeaveMode()"> <strong>🌴 當日請假（無出勤時間）</strong>
+                    <input type="checkbox" id="isLeave" onchange="toggleLeaveMode()"> <strong>🌴 當日請假</strong>
                 </label>
             </div>
 
             <!-- 請假專用區 -->
             <div id="leaveSection" class="leave-box" style="display: none;">
-                <div class="form-row" style="margin-bottom:0;">
+                <div class="form-row" style="margin-bottom:8px;">
                     <label style="color:#0056b3;">請選擇假別：
                         <select id="leaveType" onchange="applyLeaveType()">
                             <option value="特休">特休</option>
@@ -191,7 +200,14 @@
                         </select>
                     </label>
                     <input type="text" id="leaveCustom" placeholder="例如：補假/產假" style="display:none; width:120px;" oninput="applyLeaveType()">
-                    <span style="font-size:12px; color:#666;">（勾選請假後，表格當日會以紫色底色呈現）</span>
+                    <label style="margin-left:10px;">請假時數：
+                        <input type="number" step="0.5" id="leaveHours" style="width: 70px;" onchange="calcLeaveHours()"> 小時
+                    </label>
+                </div>
+                <div class="form-row" style="margin-bottom:0; font-size:12px;">
+                    <label>原定請假時間：<input type="time" id="leaveSt" value="08:30" onchange="calcLeaveHours()"></label>
+                    <label>至 <input type="time" id="leaveEd" value="17:30" onchange="calcLeaveHours()"></label>
+                    <span style="color:#666;">（系統會自動扣除 12:00~13:00 休息時間，並算入表格）</span>
                 </div>
             </div>
 
@@ -229,6 +245,20 @@
                 <button type="submit" class="btn btn-success">更新此單日資料</button>
             </div>
         </form>
+
+        <!-- 📲 跨裝置 PC與手機資料備份與同步區 -->
+        <div class="sync-box">
+            <h4 style="margin:0 0 8px 0; color:#6f42c1;">📲 PC與手機 資料備份與同步</h4>
+            <div class="form-row" style="margin-bottom:0;">
+                <button class="btn btn-sync" onclick="exportData()">📤 匯出資料檔 (.json)</button>
+                
+                <label class="btn btn-sync" style="cursor:pointer; margin-bottom:0;">
+                    📥 匯入資料檔 (.json)
+                    <input type="file" id="importFileInput" accept=".json" style="display:none;" onchange="importData(event)">
+                </label>
+                <span style="font-size:12px; color:#555;">（在電腦匯出備份檔後傳至手機點擊「匯入」，即可完美同步！）</span>
+            </div>
+        </div>
 
         <div style="margin-top: 15px;">
             <button class="btn btn-primary" style="background:#17a2b8;" onclick="window.print()">🖨️ 匯出與公司相同格式之 PDF</button>
@@ -374,7 +404,6 @@
                 const tr = document.createElement('tr');
                 const isLeave = data.isLeave === true;
 
-                // 判斷底色類別（請假優先於假日）
                 if (isLeave) {
                     tr.classList.add('leave-row');
                 } else if (dayOfWeek === 0 || dayOfWeek === 6) {
@@ -393,7 +422,8 @@
                     <td>${edTime}</td>
                     <td>${rstSt}</td>
                     <td>${rstEd}</td>
-                    <td></td><td></td><td></td>
+                    <td></td><td></td>
+                    <td style="color: #6f42c1; font-weight: bold;">${isLeave ? (data.leaveHours || '8') : ''}</td>
                     <td>${data.otStart || ''}</td>
                     <td>${data.otEnd || ''}</td>
                     <td>${data.otHours || ''}</td>
@@ -424,10 +454,31 @@
                 document.getElementById('otHours').value = '';
                 
                 applyLeaveType();
+                calcLeaveHours();
             } else {
                 leaveSection.style.display = 'none';
                 workTimeSection.style.display = 'flex';
                 otSection.style.display = 'flex';
+            }
+        }
+
+        function calcLeaveHours() {
+            const start = document.getElementById('leaveSt').value;
+            const end = document.getElementById('leaveEd').value;
+
+            if (start && end) {
+                const s = new Date(`1970-01-01T${start}:00`);
+                const e = new Date(`1970-01-01T${end}:00`);
+                let diff = (e - s) / (1000 * 60 * 60);
+
+                if (diff < 0) diff += 24;
+
+                // 扣除 12:00 ~ 13:00 午休時間
+                if (start <= "12:00" && end >= "13:00" && diff > 1) {
+                    diff -= 1;
+                }
+
+                document.getElementById('leaveHours').value = diff > 0 ? diff.toFixed(1).replace('.0', '') : '8';
             }
         }
 
@@ -546,6 +597,10 @@
             document.getElementById('otEnd').value = data.otEnd || "";
             document.getElementById('otHours').value = data.otHours || "";
 
+            document.getElementById('leaveSt').value = data.leaveSt || "08:30";
+            document.getElementById('leaveEd').value = data.leaveEd || "17:30";
+            document.getElementById('leaveHours').value = data.leaveHours || "8";
+
             toggleLeaveMode();
 
             if (isLeave) {
@@ -589,6 +644,9 @@
 
             currentRecords[dateKey] = {
                 isLeave: isLeave,
+                leaveSt: isLeave ? document.getElementById('leaveSt').value : '',
+                leaveEd: isLeave ? document.getElementById('leaveEd').value : '',
+                leaveHours: isLeave ? document.getElementById('leaveHours').value : '',
                 stTime: isLeave ? '' : document.getElementById('stTime').value,
                 edTime: isLeave ? '' : document.getElementById('edTime').value,
                 rstSt: isLeave ? '' : document.getElementById('rstSt').value,
@@ -612,6 +670,67 @@
                 localStorage.removeItem(getStorageKey());
                 loadMonthData();
             }
+        }
+
+        /* ---------------- 📲 匯出與匯入（跨裝置同步） ---------------- */
+        
+        function exportData() {
+            const allData = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('attendance_')) {
+                    allData[key] = JSON.parse(localStorage.getItem(key));
+                }
+            }
+
+            if (Object.keys(allData).length === 0) {
+                alert("目前沒有任何打卡紀錄可以匯出！");
+                return;
+            }
+
+            const name = document.getElementById('empName').value || '員工';
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            
+            const today = new Date().toISOString().slice(0, 10);
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `${name}_出勤紀錄備份_${today}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    let importedCount = 0;
+
+                    for (const key in importedData) {
+                        if (key.startsWith('attendance_')) {
+                            localStorage.setItem(key, JSON.stringify(importedData[key]));
+                            importedCount++;
+                        }
+                    }
+
+                    if (importedCount > 0) {
+                        alert("🎉 資料匯入成功！系統已同步最新打卡紀錄。");
+                        loadMonthData();
+                    } else {
+                        alert("⚠️ 匯入失敗：檔案內無有效的出勤紀錄格式。");
+                    }
+                } catch (err) {
+                    alert("❌ 匯入失敗：無法讀取此檔案，請確認檔案格式是否正確！");
+                }
+                
+                event.target.value = '';
+            };
+
+            reader.readAsText(file);
         }
 
         loadMonthData();
