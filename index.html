@@ -311,7 +311,7 @@
                     📥 匯入資料檔 (.json)
                     <input type="file" id="importFileInput" accept=".json" style="display:none;" onchange="importData(event)">
                 </label>
-                <span style="font-size:12px; color:#555;">（在電腦匯出備份檔後傳至手機點擊「匯入」，即可完美同步！）</span>
+                <span style="font-size:12px; color:#555;">（手機點擊匯出將直接開啟分享面板傳送備份檔，點擊匯入即可同步！）</span>
             </div>
         </div>
 
@@ -466,8 +466,6 @@
             
             const fullTitle = `添盈科技有限公司員工${name}${y}年${m}月份出勤紀錄`;
             document.getElementById('tableHeader').innerText = fullTitle;
-            
-            // 💡 動態設定網頁標題，讓瀏覽器「另存為 PDF」時自動套用此預設檔名
             document.title = fullTitle;
 
             const yearAD = parseInt(y) + 1911;
@@ -809,7 +807,8 @@
             alert("已清空當月資料！");
         }
 
-        function exportData() {
+        // 📲 最佳化手機端備份匯出（優先使用手機原生分享面板，若不支援則退回傳統下載）
+        async function exportData() {
             const allData = {};
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
@@ -818,10 +817,33 @@
                 }
             }
 
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allData, null, 2));
+            const jsonString = JSON.stringify(allData, null, 2);
+            const fileName = `attendance_backup_${new Date().toISOString().slice(0,10)}.json`;
+            const file = new File([jsonString], fileName, { type: 'application/json' });
+
+            // 如果手機支援原生 Share API，直接呼叫分享面板
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        files: [file],
+                        title: '出勤紀錄備份檔',
+                        text: '請選擇要儲存或傳送備份檔的位置'
+                    });
+                    return;
+                } catch (err) {
+                    if (err.name !== 'AbortError') {
+                        console.log('分享取消或發生錯誤，改用傳統下載');
+                    } else {
+                        return;
+                    }
+                }
+            }
+
+            // 退回傳統電腦/一般下載模式
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(jsonString);
             const downloadAnchor = document.createElement('a');
             downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `attendance_backup_${new Date().toISOString().slice(0,10)}.json`);
+            downloadAnchor.setAttribute("download", fileName);
             document.body.appendChild(downloadAnchor);
             downloadAnchor.click();
             downloadAnchor.remove();
