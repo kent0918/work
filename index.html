@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>每日出勤紀錄表</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f6f9; }
+        h2 { color: #333; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+        label { font-size: 14px; font-weight: bold; margin-top: 5px; }
+        input, select { width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { margin-top: 15px; padding: 10px 15px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #0056b3; }
+        table { width: 100%; border-collapse: collapse; background: white; margin-top: 10px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; font-size: 14px; }
+        th { background-color: #007bff; color: white; }
+        .btn-danger { background: #dc3545; padding: 5px 10px; margin: 0; }
+        .btn-danger:hover { background: #a71d2a; }
+    </style>
+</head>
+<body>
+
+    <h2>📅 每日出勤紀錄系統</h2>
+
+    <!-- 輸入表單 -->
+    <div class="card">
+        <h3>新增 / 每日打卡</h3>
+        <form id="attendanceForm">
+            <div class="form-grid">
+                <div>
+                    <label>出勤日期</label>
+                    <input type="date" id="date" required>
+                </div>
+                <div>
+                    <label>上班時間</label>
+                    <input type="time" id="startTime" value="08:30">
+                </div>
+                <div>
+                    <label>下班時間</label>
+                    <input type="time" id="endTime" value="17:30">
+                </div>
+                <div>
+                    <label>休息開始</label>
+                    <input type="time" id="restStart" value="12:00">
+                </div>
+                <div>
+                    <label>休息結束</label>
+                    <input type="time" id="restEnd" value="13:00">
+                </div>
+                <div>
+                    <label>支出金額</label>
+                    <input type="number" id="expense" placeholder="例如: 185">
+                </div>
+                <div style="grid-column: span 2;">
+                    <label>備註 (地點/假別/項目)</label>
+                    <input type="text" id="note" placeholder="例如：台大 / 油資 / 特休">
+                </div>
+            </div>
+            <button type="submit">儲存紀錄</button>
+        </form>
+    </div>
+
+    <!-- 出勤表格 -->
+    <div class="card">
+        <h3>出勤明細表</h3>
+        <button onclick="exportCSV()" style="background:#28a745; margin-bottom:10px;">📥 匯出 CSV Excel 檔</button>
+        <table id="recordsTable">
+            <thead>
+                <tr>
+                    <th>日期</th>
+                    <th>上班</th>
+                    <th>下班</th>
+                    <th>休息時間</th>
+                    <th>支出金額</th>
+                    <th>備註</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+        // 初始化預設日期為今天
+        document.getElementById('date').valueAsDate = new Date();
+
+        // 讀取 LocalStorage 資料
+        let records = JSON.parse(localStorage.getItem('attendanceRecords')) || [];
+
+        function renderTable() {
+            const tbody = document.querySelector('#recordsTable tbody');
+            tbody.innerHTML = '';
+            
+            // 依日期排序
+            records.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            records.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.date}</td>
+                    <td>${item.startTime || '-'}</td>
+                    <td>${item.endTime || '-'}</td>
+                    <td>${item.restStart && item.restEnd ? item.restStart + '~' + item.restEnd : '-'}</td>
+                    <td>${item.expense ? '$' + item.expense : '-'}</td>
+                    <td>${item.note || '-'}</td>
+                    <td><button class="btn-danger" onclick="deleteRecord(${index})">刪除</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            localStorage.setItem('attendanceRecords', JSON.stringify(records));
+        }
+
+        // 新增資料
+        document.getElementById('attendanceForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const newRecord = {
+                date: document.getElementById('date').value,
+                startTime: document.getElementById('startTime').value,
+                endTime: document.getElementById('endTime').value,
+                restStart: document.getElementById('restStart').value,
+                restEnd: document.getElementById('restEnd').value,
+                expense: document.getElementById('expense').value,
+                note: document.getElementById('note').value
+            };
+
+            records.push(newRecord);
+            renderTable();
+            document.getElementById('note').value = '';
+            document.getElementById('expense').value = '';
+        });
+
+        // 刪除資料
+        function deleteRecord(index) {
+            if (confirm('確定要刪除這筆紀錄嗎？')) {
+                records.splice(index, 1);
+                renderTable();
+            }
+        }
+
+        // 匯出成 Excel 可開啟的 CSV 檔案
+        function exportCSV() {
+            if(records.length === 0) {
+                alert("目前沒有資料可匯出！");
+                return;
+            }
+            let csv = '\uFEFF日期,上班時間,下班時間,休息時間,支出金額,備註\n';
+            records.forEach(r => {
+                const rest = (r.restStart && r.restEnd) ? `${r.restStart}-${r.restEnd}` : '';
+                csv += `"${r.date}","${r.startTime}","${r.endTime}","${rest}","${r.expense}","${r.note}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `出勤紀錄_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
+        }
+
+        // 初次載入渲染
+        renderTable();
+    </script>
+</body>
+</html>
