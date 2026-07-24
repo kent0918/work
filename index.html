@@ -238,8 +238,8 @@
                 
                 <!-- ⏱️ 遲到早退欄位 -->
                 <span style="border-left: 2px solid #ddd; padding-left: 10px; margin-left: 5px; display: inline-flex; gap: 8px; align-items: center;">
-                    <label style="color:#c0392b;">遲到：<input type="number" id="lateMins" placeholder="0" style="width: 55px;"> 分</label>
-                    <label style="color:#d35400;">早退：<input type="number" id="earlyMins" placeholder="0" style="width: 55px;"> 分</label>
+                    <label style="color:#c0392b;">遲到：<input type="number" id="lateMins" placeholder="0" style="width: 55px;"></label>
+                    <label style="color:#d35400;">早退：<input type="number" id="earlyMins" placeholder="0" style="width: 55px;"></label>
                 </span>
             </div>
 
@@ -285,7 +285,7 @@
             </div>
         </div>
 
-        <!-- 🖨️ PDF 匯出與分享區 (更新) -->
+        <!-- 🖨️ PDF 匯出與分享區 -->
         <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
             <button class="btn btn-primary" style="background:#17a2b8;" onclick="downloadPDF()">📥 下載 PDF 檔案</button>
             <button class="btn btn-share" onclick="sharePDF()">📲 轉發 / 分享 PDF (LINE/MAIL)</button>
@@ -773,7 +773,7 @@
             }
         }
 
-        /* ---------------- 📄 PDF 下載與原生分享功能 ---------------- */
+        /* ---------------- 📄 PDF 下載與原生分享功能 (防跑版優化版) ---------------- */
 
         function getPDFFilename() {
             const name = document.getElementById('empName').value || '員工';
@@ -783,50 +783,55 @@
         }
 
         function getPDFOptions() {
+            const element = document.getElementById('pdfContainer');
             return {
-                margin:       8,
+                margin:       [5, 5, 5, 5],
                 filename:     getPDFFilename(),
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                html2canvas:  { 
+                    scale: 2, 
+                    useCORS: true, 
+                    scrollY: 0,
+                    scrollX: 0,
+                    width: element.offsetWidth
+                },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
             };
         }
 
-        // 1. 直接下載 PDF 檔案
         function downloadPDF() {
             const element = document.getElementById('pdfContainer');
             const opt = getPDFOptions();
-            html2pdf().set(opt).from(element).save();
+            
+            html2pdf().set(opt).from(element).toPdf().get('pdf').then((pdf) => {
+            }).save();
         }
 
-        // 2. 原生轉發/分享 PDF (支援 LINE、Mail 等)
         async function sharePDF() {
             const element = document.getElementById('pdfContainer');
             const fileName = getPDFFilename();
             const opt = getPDFOptions();
 
             try {
-                // 產生 PDF 檔案 Blob
                 const pdfWorker = html2pdf().set(opt).from(element);
                 const pdfBlob = await pdfWorker.output('blob');
                 const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
 
-                // 檢查瀏覽器是否支援檔案分享 API (行動裝置與 Safari/Chrome 多數支援)
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
                     await navigator.share({
                         files: [file],
                         title: fileName,
-                        text: `這是${fileName}，請查收。`
+                        text: `這是 ${fileName}，請查收。`
                     });
                 } else {
-                    // 若桌機或不支援選單分享，則自動下載檔案並提醒
-                    alert('您的瀏覽器不支援直接呼叫應用程式選單，已為您下載 PDF！\n您可以開啟 LINE 或 Email 並附加此下載檔案進行傳送。');
-                    html2pdf().set(opt).from(element).save();
+                    alert('您的裝置或瀏覽器不支援直接呼叫分享選單，已自動為您下載 PDF 檔案！');
+                    downloadPDF();
                 }
             } catch (err) {
                 if (err.name !== 'AbortError') {
                     console.error("分享 PDF 時發生錯誤:", err);
-                    alert("產生 PDF 分享檔案時失敗，已自動切換為下載。");
+                    alert("產生 PDF 分享檔案時失敗，已切換為直接下載。");
                     downloadPDF();
                 }
             }
