@@ -98,7 +98,7 @@
             vertical-align: middle;
         }
 
-        /* 🎨 表格標頭：淺淡藍色 `#dce8f5`，深色文字 `#1c2d42` */
+        /* 表格標頭：淺淡藍色 `#dce8f5`，深色文字 `#1c2d42` */
         table.sheet-table th {
             background-color: #dce8f5 !important;
             color: #1c2d42 !important;
@@ -122,7 +122,7 @@
             background-color: #f3e5f5 !important;
         }
 
-        /* 當勾選隱藏請假時數欄位時採用的動態 CSS */
+        /* 當勾選隱藏請假時數欄位時採用的 CSS */
         .hide-leave-col .col-leave {
             display: none !important;
         }
@@ -192,7 +192,7 @@
 
         <!-- 單日修改與微調區 -->
         <form id="recordForm" onsubmit="saveRecord(event)">
-            <h4 style="margin:0 0 8px 0; color:#27ae60;">✏️ 單日微調（出勤 / 請假 / 支出填寫）</h4>
+            <h4 style="margin:0 0 8px 0; color:#27ae60;">✏️ 單日微調（出勤 / 考勤 / 請假 / 支出填寫）</h4>
             
             <div class="form-row">
                 <label>選擇日期：<select id="selectDate" onchange="loadSingleDayData()"></select></label>
@@ -227,11 +227,17 @@
                 </div>
             </div>
 
-            <!-- 正常出勤時間區 -->
+            <!-- 正常出勤與考勤時間區 -->
             <div id="workTimeSection" class="form-row">
-                <label>實際上班：<input type="time" id="stTime" value="08:30"></label>
-                <label>實際下班：<input type="time" id="edTime" value="17:30"></label>
+                <label>實際上班：<input type="time" id="stTime" value="08:30" onchange="autoCalcLateness()"></label>
+                <label>實際下班：<input type="time" id="edTime" value="17:30" onchange="autoCalcLateness()"></label>
                 <label>休息：<input type="time" id="rstSt" value="12:00"> ~ <input type="time" id="rstEd" value="13:00"></label>
+                
+                <!-- ⏱️ 遲到早退欄位 (自動帶入也可手動輸入) -->
+                <span style="border-left: 2px solid #ddd; padding-left: 10px; margin-left: 5px; display: inline-flex; gap: 8px; align-items: center;">
+                    <label style="color:#c0392b;">遲到：<input type="number" id="lateMins" placeholder="0" style="width: 55px;"> 分</label>
+                    <label style="color:#d35400;">早退：<input type="number" id="earlyMins" placeholder="0" style="width: 55px;"> 分</label>
+                </span>
             </div>
 
             <!-- 加班填寫區 -->
@@ -383,6 +389,36 @@
             }
         }
 
+        /* ⏱️ 自動計算遲到早退分鐘數 (基於約定 08:30 上班, 17:30 下班) */
+        function autoCalcLateness() {
+            const st = document.getElementById('stTime').value;
+            const ed = document.getElementById('edTime').value;
+
+            // 上班遲到計算 (標準 08:30)
+            if (st) {
+                const [h, m] = st.split(':').map(Number);
+                const actualMins = h * 60 + m;
+                const standardMins = 8 * 60 + 30; // 08:30
+                if (actualMins > standardMins) {
+                    document.getElementById('lateMins').value = actualMins - standardMins;
+                } else {
+                    document.getElementById('lateMins').value = '';
+                }
+            }
+
+            // 下班早退計算 (標準 17:30)
+            if (ed) {
+                const [h, m] = ed.split(':').map(Number);
+                const actualMins = h * 60 + m;
+                const standardMins = 17 * 60 + 30; // 17:30
+                if (actualMins < standardMins) {
+                    document.getElementById('earlyMins').value = standardMins - actualMins;
+                } else {
+                    document.getElementById('earlyMins').value = '';
+                }
+            }
+        }
+
         function loadMonthData() {
             const name = document.getElementById('empName').value || '';
             const y = document.getElementById('yearNum').value;
@@ -454,7 +490,8 @@
                     <td>${edTime}</td>
                     <td>${rstSt}</td>
                     <td>${rstEd}</td>
-                    <td></td><td></td>
+                    <td style="color: #c0392b; font-weight: bold;">${isLeave ? '' : (data.lateMins || '')}</td>
+                    <td style="color: #d35400; font-weight: bold;">${isLeave ? '' : (data.earlyMins || '')}</td>
                     <td class="col-leave" style="color: #6f42c1; font-weight: bold;">${isLeave ? (data.leaveHours || '8') : ''}</td>
                     <td>${data.otStart || ''}</td>
                     <td>${data.otEnd || ''}</td>
@@ -484,6 +521,8 @@
                 document.getElementById('otStart').value = '';
                 document.getElementById('otEnd').value = '';
                 document.getElementById('otHours').value = '';
+                document.getElementById('lateMins').value = '';
+                document.getElementById('earlyMins').value = '';
                 
                 applyLeaveType();
                 calcLeaveHours();
@@ -599,6 +638,8 @@
                         edTime: bEd,
                         rstSt: bRstSt,
                         rstEd: bRstEd,
+                        lateMins: '',
+                        earlyMins: '',
                         noteInput: bNote
                     };
                 }
@@ -621,6 +662,10 @@
             document.getElementById('edTime').value = data.edTime || "17:30";
             document.getElementById('rstSt').value = data.rstSt || "12:00";
             document.getElementById('rstEd').value = data.rstEd || "13:00";
+            
+            document.getElementById('lateMins').value = data.lateMins !== undefined ? data.lateMins : '';
+            document.getElementById('earlyMins').value = data.earlyMins !== undefined ? data.earlyMins : '';
+
             document.getElementById('noteInput').value = data.noteInput || "";
             document.getElementById('expAmount').value = data.expAmount || "";
             
@@ -682,6 +727,8 @@
                 edTime: isLeave ? '' : document.getElementById('edTime').value,
                 rstSt: isLeave ? '' : document.getElementById('rstSt').value,
                 rstEd: isLeave ? '' : document.getElementById('rstEd').value,
+                lateMins: isLeave ? '' : document.getElementById('lateMins').value,
+                earlyMins: isLeave ? '' : document.getElementById('earlyMins').value,
                 otStart: isLeave ? '' : document.getElementById('otStart').value,
                 otEnd: isLeave ? '' : document.getElementById('otEnd').value,
                 otHours: isLeave ? '' : document.getElementById('otHours').value,
