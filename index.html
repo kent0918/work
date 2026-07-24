@@ -4,13 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>添盈科技有限公司員工出勤紀錄表</title>
-    <!-- 引入 html2pdf.js 套件，用於網頁轉 PDF 功能 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         * { box-sizing: border-box; }
         body { font-family: "Microsoft JhengHei", "微軟正黑體", Arial, sans-serif; margin: 15px; color: #333; background-color: #f0f2f5; }
 
-        /* 網頁面板 (列印/轉 PDF 時隱藏) */
+        /* 網頁面板 (列印時隱藏) */
         .no-print {
             background: #ffffff;
             padding: 15px;
@@ -27,7 +25,6 @@
         .btn-warning { background-color: #e67e22; }
         .btn-danger { background-color: #dc3545; }
         .btn-sync { background-color: #6f42c1; }
-        .btn-share { background-color: #00b900; } /* LINE 綠色風格 */
 
         .batch-box {
             background-color: #fff8e7;
@@ -137,7 +134,7 @@
             color: #555;
         }
 
-        /* 列印專用 CSS */
+        /* 列印專用 CSS (自動隱藏操作區與最佳化邊界) */
         @media print {
             body { background: white; margin: 0; padding: 0; }
             .no-print { display: none !important; }
@@ -285,11 +282,9 @@
             </div>
         </div>
 
-        <!-- 🖨️ PDF 匯出與分享區 -->
+        <!-- 🖨️ 列印/轉 PDF 功能按鈕區 -->
         <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
-            <button class="btn btn-primary" style="background:#17a2b8;" onclick="downloadPDF()">📥 下載 PDF 檔案</button>
-            <button class="btn btn-share" onclick="sharePDF()">📲 轉發 / 分享 PDF (LINE/MAIL)</button>
-            <button class="btn btn-primary" style="background:#6c757d;" onclick="window.print()">🖨️ 開啟瀏覽器列印頁面</button>
+            <button class="btn btn-primary" style="font-size: 14px; padding: 8px 20px;" onclick="window.print()">🖨️ 列印 / 另存為 PDF 檔案</button>
             <button class="btn btn-danger" style="margin-left:auto;" onclick="clearMonthData()">清空【當月】資料</button>
         </div>
     </div>
@@ -770,70 +765,6 @@
             if (confirm(`確定要清空 ${m} 月的所有打卡紀錄嗎？`)) {
                 localStorage.removeItem(getStorageKey());
                 loadMonthData();
-            }
-        }
-
-        /* ---------------- 📄 PDF 下載與原生分享功能 (防跑版優化版) ---------------- */
-
-        function getPDFFilename() {
-            const name = document.getElementById('empName').value || '員工';
-            const y = document.getElementById('yearNum').value;
-            const m = document.getElementById('monthNum').value;
-            return `添盈科技_${name}_${y}年${m}月出勤紀錄.pdf`;
-        }
-
-        function getPDFOptions() {
-            const element = document.getElementById('pdfContainer');
-            return {
-                margin:       [5, 5, 5, 5],
-                filename:     getPDFFilename(),
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { 
-                    scale: 2, 
-                    useCORS: true, 
-                    scrollY: 0,
-                    scrollX: 0,
-                    width: element.offsetWidth
-                },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
-            };
-        }
-
-        function downloadPDF() {
-            const element = document.getElementById('pdfContainer');
-            const opt = getPDFOptions();
-            
-            html2pdf().set(opt).from(element).toPdf().get('pdf').then((pdf) => {
-            }).save();
-        }
-
-        async function sharePDF() {
-            const element = document.getElementById('pdfContainer');
-            const fileName = getPDFFilename();
-            const opt = getPDFOptions();
-
-            try {
-                const pdfWorker = html2pdf().set(opt).from(element);
-                const pdfBlob = await pdfWorker.output('blob');
-                const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
-
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    await navigator.share({
-                        files: [file],
-                        title: fileName,
-                        text: `這是 ${fileName}，請查收。`
-                    });
-                } else {
-                    alert('您的裝置或瀏覽器不支援直接呼叫分享選單，已自動為您下載 PDF 檔案！');
-                    downloadPDF();
-                }
-            } catch (err) {
-                if (err.name !== 'AbortError') {
-                    console.error("分享 PDF 時發生錯誤:", err);
-                    alert("產生 PDF 分享檔案時失敗，已切換為直接下載。");
-                    downloadPDF();
-                }
             }
         }
 
