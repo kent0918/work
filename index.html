@@ -149,8 +149,12 @@
         <div class="batch-box">
             <h4 style="margin:0 0 4px 0; color:#d35400; font-size:12px;">⚡ 快速批次套用（填滿全月工作日）</h4>
             <div class="form-row">
-                <label>上班：<input type="time" id="batchSt" value="08:30"></label>
-                <label>下班：<input type="time" id="batchEd" value="17:30"></label>
+                <label>約定上班：<input type="time" id="batchPlanSt" value="08:30"></label>
+                <label>約定下班：<input type="time" id="batchPlanEd" value="17:30"></label>
+            </div>
+            <div class="form-row" style="margin-top: 4px;">
+                <label>實際上班：<input type="time" id="batchSt" value="08:30"></label>
+                <label>實際下班：<input type="time" id="batchEd" value="17:30"></label>
                 <label>休息：<input type="time" id="batchRstSt" value="12:00">~<input type="time" id="batchRstEd" value="13:00"></label>
                 <label>地點：<input type="text" id="batchNote" value="台大" style="width: 60px;"></label>
                 <button class="btn btn-warning" onclick="applyBatchWork()">⚡ 填滿平日</button>
@@ -158,13 +162,21 @@
         </div>
 
         <form id="recordForm" onsubmit="saveRecord(event)">
-            <h4 style="margin:0 0 4px 0; color:#27ae60; font-size:12px;">✏️ 單日微調（出勤 / 請假 / 支出）</h4>
+            <h4 style="margin:0 0 4px 0; color:#27ae60; font-size:12px;">✏️ 單日微調（約定時間 / 實際出勤 / 請假 / 支出）</h4>
             
             <div class="form-row">
                 <label>日期：<select id="selectDate" onchange="loadSingleDayData()"></select></label>
                 <label style="color: #d9534f; cursor: pointer; margin-left:8px;">
                     <input type="checkbox" id="isLeave" onchange="toggleLeaveMode()"> <strong>🌴 請假</strong>
                 </label>
+            </div>
+
+            <!-- 約定出動時間欄位 -->
+            <div class="form-row" style="background:#f4f6f8; padding:4px; border-radius:4px; border:1px solid #ddd;">
+                <label style="color:#333;">📅 約定出動：</label>
+                <label>上班：<input type="time" id="planStTime" value="08:30"></label>
+                <label>下班：<input type="time" id="planEdTime" value="17:30"></label>
+                <button type="button" class="btn" style="background:#6c757d; font-size:10px; padding:2px 6px;" onclick="setDefaultPlanTime()">帶入 08:30/17:30</button>
             </div>
 
             <div id="leaveSection" class="leave-box" style="display: none;">
@@ -187,8 +199,8 @@
             </div>
 
             <div id="workTimeSection" class="form-row">
-                <label>上班：<input type="time" id="stTime" value="08:30" onchange="autoCalcLateness()"></label>
-                <label>下班：<input type="time" id="edTime" value="17:30" onchange="autoCalcLateness()"></label>
+                <label>實際上班：<input type="time" id="stTime" value="08:30" onchange="autoCalcLateness()"></label>
+                <label>實際下班：<input type="time" id="edTime" value="17:30" onchange="autoCalcLateness()"></label>
                 <label>休息：<input type="time" id="rstSt" value="12:00">~<input type="time" id="rstEd" value="13:00"></label>
                 
                 <span style="border-left: 1px solid #ccc; padding-left: 6px; display: inline-flex; gap: 4px;">
@@ -346,6 +358,11 @@
             }
         }
 
+        function setDefaultPlanTime() {
+            document.getElementById('planStTime').value = "08:30";
+            document.getElementById('planEdTime').value = "17:30";
+        }
+
         function autoCalcLateness() {
             const st = document.getElementById('stTime').value;
             const ed = document.getElementById('edTime').value;
@@ -443,6 +460,14 @@
                     tr.classList.add('weekend-row');
                 }
 
+                // 若平日無特別設定約定時間，自動預設 08:30 與 17:30
+                const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+                const defaultPlanSt = isWeekend ? '' : '08:30';
+                const defaultPlanEd = isWeekend ? '' : '17:30';
+
+                const planSt = data.planStTime !== undefined ? data.planStTime : defaultPlanSt;
+                const planEd = data.planEdTime !== undefined ? data.planEdTime : defaultPlanEd;
+
                 const stTime = isLeave ? '' : (data.stTime || '');
                 const edTime = isLeave ? '' : (data.edTime || '');
                 const rstSt = isLeave ? '' : (data.rstSt || '');
@@ -450,7 +475,8 @@
 
                 tr.innerHTML = `
                     <td>${dateKey}</td>
-                    <td></td><td></td>
+                    <td>${planSt}</td>
+                    <td>${planEd}</td>
                     <td>${stTime}</td>
                     <td>${edTime}</td>
                     <td>${rstSt}</td>
@@ -569,7 +595,7 @@
         }
 
         function applyBatchWork() {
-            if (!confirm("確定要將本月所有『週一至週五』批次填入預設的上下班時間嗎？")) return;
+            if (!confirm("確定要將本月所有『週一至週五』批次填入預設的約定與實際出勤時間嗎？")) return;
 
             const storageKey = getStorageKey();
             const currentRecords = JSON.parse(localStorage.getItem(storageKey)) || {};
@@ -580,6 +606,8 @@
             const daysInMonth = new Date(yearAD, month, 0).getDate();
             const weekNames = ["(日)", "(一)", "(二)", "(三)", "(四)", "(五)", "(六)"];
 
+            const bPlanSt = document.getElementById('batchPlanSt').value;
+            const bPlanEd = document.getElementById('batchPlanEd').value;
             const bSt = document.getElementById('batchSt').value;
             const bEd = document.getElementById('batchEd').value;
             const bRstSt = document.getElementById('batchRstSt').value;
@@ -597,6 +625,8 @@
                     currentRecords[dateKey] = {
                         ...oldData,
                         isLeave: false,
+                        planStTime: bPlanSt,
+                        planEdTime: bPlanEd,
                         stTime: bSt,
                         edTime: bEd,
                         rstSt: bRstSt,
@@ -622,6 +652,14 @@
 
             const isLeave = data.isLeave === true;
             document.getElementById('isLeave').checked = isLeave;
+
+            // 判斷是否為週末
+            const isWeekend = dateKey.includes('(日)') || dateKey.includes('(六)');
+            const defaultPlanSt = isWeekend ? '' : '08:30';
+            const defaultPlanEd = isWeekend ? '' : '17:30';
+
+            document.getElementById('planStTime').value = data.planStTime !== undefined ? data.planStTime : defaultPlanSt;
+            document.getElementById('planEdTime').value = data.planEdTime !== undefined ? data.planEdTime : defaultPlanEd;
 
             document.getElementById('stTime').value = data.stTime || "08:30";
             document.getElementById('edTime').value = data.edTime || "17:30";
@@ -685,6 +723,8 @@
 
             currentRecords[dateKey] = {
                 isLeave: isLeave,
+                planStTime: document.getElementById('planStTime').value,
+                planEdTime: document.getElementById('planEdTime').value,
                 leaveSt: isLeave ? document.getElementById('leaveSt').value : '',
                 leaveEd: isLeave ? document.getElementById('leaveEd').value : '',
                 leaveHours: isLeave ? document.getElementById('leaveHours').value : '',
