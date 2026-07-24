@@ -98,7 +98,7 @@
             vertical-align: middle;
         }
 
-        /* 🎨 表格標頭：改為「淺淡藍色」 `#dce8f5`，深色文字 `#1c2d42` */
+        /* 🎨 表格標頭：淺淡藍色 `#dce8f5`，深色文字 `#1c2d42` */
         table.sheet-table th {
             background-color: #dce8f5 !important;
             color: #1c2d42 !important;
@@ -120,6 +120,11 @@
         /* 顏色設定：請假背景 (柔和粉紫色) */
         .leave-row td {
             background-color: #f3e5f5 !important;
+        }
+
+        /* 當勾選隱藏請假時數欄位時採用的動態 CSS */
+        .hide-leave-col .col-leave {
+            display: none !important;
         }
 
         .footer-notes {
@@ -149,7 +154,7 @@
         
         <!-- 基本設定區 -->
         <div class="form-row">
-            <label>員工姓名：<input type="text" id="empName" value="蔡崇欽" style="width: 80px;"></label>
+            <label>員工姓名：<input type="text" id="empName" value="蔡崇欽" style="width: 80px;" oninput="loadMonthData()"></label>
             <label>年份：<input type="number" id="yearNum" value="115" style="width: 60px;" onchange="loadMonthData()"> 年</label>
             <label>月份：
                 <select id="monthNum" onchange="loadMonthData()">
@@ -162,6 +167,15 @@
                 </select>
             </label>
             <button class="btn btn-primary" onclick="loadMonthData()">載入/切換月份</button>
+        </div>
+
+        <!-- 👁️ 顯示／隱藏開關設定 -->
+        <div class="form-row" style="background-color: #e8f4f8; padding: 8px 12px; border-radius: 6px; border: 1px solid #bce8f1;">
+            <label style="color: #0c5460; font-size: 13px; cursor: pointer;">
+                <input type="checkbox" id="showLeaveColToggle" checked onchange="toggleLeaveColumn()">
+                <strong>👁️ 在下表中顯示「請假時數」欄位</strong>
+            </label>
+            <span style="font-size: 12px; color: #666; margin-left: 10px;">（取消勾選可直接隱藏請假時數欄位）</span>
         </div>
 
         <!-- 🚀 快速批次填寫區 -->
@@ -280,8 +294,8 @@
 
         <h2 class="title" id="tableHeader">添盈科技有限公司員工蔡崇欽115年06月份出勤紀錄</h2>
 
-        <table class="sheet-table">
-            <colgroup>
+        <table class="sheet-table" id="attendanceTable">
+            <colgroup id="tableColGroup">
                 <col style="width: 7%;">  <!-- 出勤日期 -->
                 <col style="width: 5%;">  <!-- 約定上班 -->
                 <col style="width: 5%;">  <!-- 約定下班 -->
@@ -291,7 +305,7 @@
                 <col style="width: 5%;">  <!-- 休息迄點 -->
                 <col style="width: 4%;">  <!-- 遲到 -->
                 <col style="width: 4%;">  <!-- 早退 -->
-                <col style="width: 5%;">  <!-- 請假時數 -->
+                <col style="width: 5%;" class="col-leave">  <!-- 請假時數 -->
                 <col style="width: 5%;">  <!-- 加班起始 -->
                 <col style="width: 5%;">  <!-- 加班結束 -->
                 <col style="width: 5%;">  <!-- 加班總時數 -->
@@ -306,7 +320,7 @@
                     <th colspan="4">出勤時間</th>
                     <th rowspan="2" colspan="2">休息時間</th>
                     <th rowspan="2" colspan="2">考勤狀況(分)</th>
-                    <th rowspan="3">請假<br>時數</th>
+                    <th rowspan="3" class="col-leave">請假<br>時數</th>
                     <th colspan="3">加班</th>
                     <th rowspan="3">實際出動<br>總時數</th>
                     <th rowspan="3">備註</th>
@@ -331,8 +345,8 @@
                 <!-- 動態生成紀錄 -->
             </tbody>
             <tfoot>
-                <tr>
-                    <td colspan="16" style="text-align: right; font-weight: bold; padding-right: 10px; background-color: #f8f9fa;">總計</td>
+                <tr id="tableFootTr">
+                    <td colspan="16" id="totalLabelTd" style="text-align: right; font-weight: bold; padding-right: 10px; background-color: #f8f9fa;">總計</td>
                     <td id="totalExpense" style="font-weight: bold; color: #d9534f; background-color: #f8f9fa;">$0</td>
                 </tr>
             </tfoot>
@@ -354,8 +368,23 @@
             return `attendance_${y}_${m}`;
         }
 
+        /* 👁️ 切換「請假時數」欄位顯示／隱藏 */
+        function toggleLeaveColumn() {
+            const showLeave = document.getElementById('showLeaveColToggle').checked;
+            const table = document.getElementById('attendanceTable');
+            const totalLabelTd = document.getElementById('totalLabelTd');
+
+            if (showLeave) {
+                table.classList.remove('hide-leave-col');
+                totalLabelTd.colSpan = 16;
+            } else {
+                table.classList.add('hide-leave-col');
+                totalLabelTd.colSpan = 15;
+            }
+        }
+
         function loadMonthData() {
-            const name = document.getElementById('empName').value;
+            const name = document.getElementById('empName').value || '';
             const y = document.getElementById('yearNum').value;
             const m = document.getElementById('monthNum').value;
             
@@ -384,6 +413,7 @@
 
             renderTable(daysInMonth, yearAD, month, weekNames, currentRecords);
             loadSingleDayData();
+            toggleLeaveColumn();
         }
 
         function renderTable(daysInMonth, yearAD, month, weekNames, currentRecords) {
@@ -425,7 +455,7 @@
                     <td>${rstSt}</td>
                     <td>${rstEd}</td>
                     <td></td><td></td>
-                    <td style="color: #6f42c1; font-weight: bold;">${isLeave ? (data.leaveHours || '8') : ''}</td>
+                    <td class="col-leave" style="color: #6f42c1; font-weight: bold;">${isLeave ? (data.leaveHours || '8') : ''}</td>
                     <td>${data.otStart || ''}</td>
                     <td>${data.otEnd || ''}</td>
                     <td>${data.otHours || ''}</td>
