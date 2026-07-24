@@ -80,29 +80,29 @@
             color: #1a252f;
         }
 
-        /* 表格經典深藍色樣式 */
+        /* 表格結構樣式 */
         table.sheet-table {
             width: 100%;
             border-collapse: collapse;
             font-size: 11px;
             text-align: center;
             table-layout: fixed;
-            border: 1px solid #2b3e50;
+            border: 1px solid #ab13bf;
         }
 
         table.sheet-table th, table.sheet-table td {
-            border: 1px solid #3a506b;
+            border: 1px solid #4a637d;
             padding: 4px 2px;
             height: 24px;
             word-break: break-all;
             vertical-align: middle;
         }
 
-        /* 表格標頭：還原經典深藍色背景 `#2d4861` */
+        /* 🎨 表格標頭：改為「淺淡藍色」 `#dce8f5`，深色文字 `#1c2d42` */
         table.sheet-table th {
-            background-color: #2d4861 !important;
-            color: #ffffff !important;
-            font-weight: normal;
+            background-color: #dce8f5 !important;
+            color: #1c2d42 !important;
+            font-weight: bold;
             font-size: 12px;
             line-height: 1.2;
         }
@@ -112,7 +112,7 @@
             background-color: #f1f2f6;
         }
 
-        /* 顏色設定：六日休假背景 (暖橙色/杏色) */
+        /* 顏色設定：六日休假背景 (暖杏色) */
         .weekend-row td {
             background-color: #fff3e0 !important;
         }
@@ -135,7 +135,7 @@
             .no-print { display: none !important; }
             .paper-container { box-shadow: none; padding: 0; width: 100%; max-width: none; }
             @page { size: A4 portrait; margin: 8mm; }
-            th { background-color: #2d4861 !important; color: #ffffff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            th { background-color: #dce8f5 !important; color: #1c2d42 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .weekend-row td { background-color: #fff3e0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .leave-row td { background-color: #f3e5f5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
@@ -248,7 +248,7 @@
             </div>
         </form>
 
-        <!-- 📲 跨裝置 PC與手機資料備份與同步區 -->
+        <!-- 📲 PC與手機資料備份與同步區 -->
         <div class="sync-box">
             <h4 style="margin:0 0 8px 0; color:#6f42c1;">📲 PC與手機 資料備份與同步</h4>
             <div class="form-row" style="margin-bottom:0;">
