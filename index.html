@@ -2,73 +2,48 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>添盈科技有限公司員工出勤紀錄</title>
-    <!-- 引入 HTML 轉 PDF 套件 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <title>添盈科技有限公司員工蔡崇欽115年07月份出勤紀錄</title>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: "Microsoft JhengHei", "微軟正黑體", Arial, sans-serif; margin: 10px; color: #333; background-color: #f0f2f5; }
-
-        /* 網頁控制面板 (列印/轉PDF時隱藏) */
-        .no-print {
-            background: #ffffff;
-            padding: 12px 15px;
-            border-radius: 8px;
-            margin-bottom: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        body { 
+            font-family: "Microsoft JhengHei", "微軟正黑體", Arial, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            color: #000; 
+            background: #fff;
         }
-        .form-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; align-items: center; }
-        .form-row label { font-weight: bold; font-size: 13px; }
-        .form-row input, .form-row select { padding: 4px; border: 1px solid #ccc; border-radius: 4px; }
-        .btn { padding: 6px 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; font-size: 13px; }
-        .btn-primary { background-color: #0066cc; }
-        .btn-pdf { background-color: #28a745; }
-        .btn-warning { background-color: #e67e22; }
-        .btn-danger { background-color: #dc3545; }
-        .btn-sync { background-color: #6f42c1; }
 
-        .batch-box { background-color: #fff8e7; border: 1px solid #ffe0b2; padding: 8px; border-radius: 6px; margin-bottom: 8px; }
-        .leave-box { background-color: #eef7ff; border: 1px solid #bae0ff; padding: 8px; border-radius: 6px; margin-bottom: 8px; }
-        .sync-box { background-color: #f3e8ff; border: 1px solid #d8b4fe; padding: 8px; border-radius: 6px; margin-top: 8px; }
-
-        .color-legend { display: flex; gap: 12px; font-size: 11px; margin-bottom: 6px; font-weight: bold; flex-wrap: wrap; }
-        .legend-item { display: flex; align-items: center; gap: 4px; }
-        .color-box { width: 13px; height: 13px; border-radius: 2px; border: 1px solid #ccc; }
-
-        /* A4 紙張與標準表格容器 */
-        .paper-container {
-            background: white;
-            width: 100%;
-            max-width: 900px;
+        /* A4 紙張與滿版容器設定 */
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 8mm 10mm;
             margin: 0 auto;
-            padding: 8px 12px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            background: #fff;
         }
 
         h2.title {
             text-align: center;
-            font-size: 15px;
+            font-size: 16px;
             font-weight: bold;
-            margin: 0 0 5px 0;
-            letter-spacing: 0.5px;
-            color: #1a252f;
+            margin: 0 0 6px 0;
+            letter-spacing: 1px;
         }
 
-        /* 超精準單頁表格排版 (固定高度與極致緊湊設計) */
+        /* 表格樣式：精準對齊舊版 17 欄與欄寬 */
         table.sheet-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 10px;
+            font-size: 9.5px;
             text-align: center;
             table-layout: fixed;
-            border: 1px solid #333;
+            border: 1.5px solid #000;
         }
 
         table.sheet-table th, table.sheet-table td {
-            border: 1px solid #333;
+            border: 1px solid #000;
             padding: 0px 1px;
-            height: 16px; /* 完美控制 31 天高度不跨頁 */
+            height: 16px; 
             word-break: break-all;
             vertical-align: middle;
             line-height: 1.1;
@@ -76,219 +51,74 @@
 
         table.sheet-table th {
             background-color: #dce8f5 !important;
-            color: #1c2d42 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
             font-weight: bold;
-            font-size: 9.5px;
+            font-size: 9px;
         }
 
-        .weekend-row td { background-color: #fff3e0 !important; }
-        .leave-row td { background-color: #f3e5f5 !important; }
-
-        .hide-leave-col .col-leave { display: none !important; }
+        .weekend-row td { 
+            background-color: #fff3e0 !important; 
+            -webkit-print-color-adjust: exact; 
+            print-color-adjust: exact; 
+        }
+        
+        .leave-row td { 
+            background-color: #f3e5f5 !important; 
+            -webkit-print-color-adjust: exact; 
+            print-color-adjust: exact; 
+        }
 
         .footer-notes {
-            margin-top: 5px;
-            font-size: 8px;
-            line-height: 1.2;
-            color: #444;
+            margin-top: 6px;
+            font-size: 8.5px;
+            line-height: 1.3;
+            color: #000;
         }
 
-        /* 🖨️ 系統列印專用 CSS（100% 確保單頁無溢位） */
+        /* 列印強制設定 */
         @media print {
-            body { background: white; margin: 0; padding: 0; }
-            .no-print { display: none !important; }
-            .paper-container { 
-                box-shadow: none; 
-                padding: 0; 
-                width: 100% !important; 
-                max-width: none !important;
-            }
+            body { background: white; }
+            .page { width: 100%; padding: 0; margin: 0; box-shadow: none; }
             @page { 
                 size: A4 portrait; 
-                margin: 4mm 5mm; 
+                margin: 6mm 8mm; 
             }
-            h2.title { font-size: 14.5px; margin-bottom: 4px; }
-            table.sheet-table { font-size: 9px !important; }
-            table.sheet-table th, table.sheet-table td { height: 15.5px !important; padding: 0 !important; }
-            th { background-color: #dce8f5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .weekend-row td { background-color: #fff3e0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .leave-row td { background-color: #f3e5f5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .footer-notes { font-size: 7.5px !important; margin-top: 3px; }
         }
     </style>
 </head>
 <body>
 
-    <!-- 控制面板 -->
-    <div class="no-print">
-        <h3 style="margin-top:0; margin-bottom:8px; color:#2c3e50;">📝 出勤紀錄管理系統</h3>
-        
-        <div class="form-row">
-            <label>姓名：<input type="text" id="empName" value="蔡崇欽" style="width: 70px;" oninput="loadMonthData()"></label>
-            <label>年份：<input type="number" id="yearNum" value="115" style="width: 50px;" onchange="loadMonthData()"> 年</label>
-            <label>月份：
-                <select id="monthNum" onchange="loadMonthData()">
-                    <option value="01">01 月</option><option value="02">02 月</option>
-                    <option value="03">03 月</option><option value="04">04 月</option>
-                    <option value="05">05 月</option><option value="06">06 月</option>
-                    <option value="07" selected>07 月</option><option value="08">08 月</option>
-                    <option value="09">09 月</option><option value="10">10 月</option>
-                    <option value="11">11 月</option><option value="12">12 月</option>
-                </select>
-            </label>
-            <button class="btn btn-primary" onclick="loadMonthData()">載入/切換</button>
-        </div>
+    <div class="page">
+        <h2 class="title">添盈科技有限公司員工蔡崇欽115年07月份出勤紀錄</h2>
 
-        <div class="form-row" style="background-color: #e8f4f8; padding: 4px 8px; border-radius: 4px;">
-            <label style="color: #0c5460; font-size: 12px; cursor: pointer;">
-                <input type="checkbox" id="showLeaveColToggle" checked onchange="toggleLeaveColumn()">
-                <strong>👁️ 顯示「請假時數」欄位</strong>
-            </label>
-        </div>
-
-        <div class="batch-box">
-            <h4 style="margin:0 0 4px 0; color:#d35400; font-size:12px;">⚡ 快速批次套用（填滿全月工作日）</h4>
-            <div class="form-row">
-                <label>約定上班：<input type="time" id="batchPlanSt" value="08:30"></label>
-                <label>約定下班：<input type="time" id="batchPlanEd" value="17:30"></label>
-            </div>
-            <div class="form-row" style="margin-top: 4px;">
-                <label>實際上班：<input type="time" id="batchSt" value="08:30"></label>
-                <label>實際下班：<input type="time" id="batchEd" value="17:30"></label>
-                <label>休息：<input type="time" id="batchRstSt" value="12:00">~<input type="time" id="batchRstEd" value="13:00"></label>
-                <label>地點：<input type="text" id="batchNote" value="台大" style="width: 60px;"></label>
-                <button class="btn btn-warning" onclick="applyBatchWork()">⚡ 填滿平日</button>
-            </div>
-        </div>
-
-        <form id="recordForm" onsubmit="saveRecord(event)">
-            <h4 style="margin:0 0 4px 0; color:#27ae60; font-size:12px;">✏️ 單日微調（約定時間 / 實際出勤 / 請假 / 支出）</h4>
-            
-            <div class="form-row">
-                <label>日期：<select id="selectDate" onchange="loadSingleDayData()"></select></label>
-                <label style="color: #d9534f; cursor: pointer; margin-left:8px;">
-                    <input type="checkbox" id="isLeave" onchange="toggleLeaveMode()"> <strong>🌴 請假</strong>
-                </label>
-            </div>
-
-            <!-- 約定出動時間欄位 -->
-            <div class="form-row" style="background:#f4f6f8; padding:4px; border-radius:4px; border:1px solid #ddd;">
-                <label style="color:#333;">📅 約定出動：</label>
-                <label>上班：<input type="time" id="planStTime" value="08:30"></label>
-                <label>下班：<input type="time" id="planEdTime" value="17:30"></label>
-                <button type="button" class="btn" style="background:#6c757d; font-size:10px; padding:2px 6px;" onclick="setDefaultPlanTime()">帶入 08:30/17:30</button>
-            </div>
-
-            <div id="leaveSection" class="leave-box" style="display: none;">
-                <div class="form-row" style="margin-bottom:4px;">
-                    <label style="color:#0056b3;">假別：
-                        <select id="leaveType" onchange="applyLeaveType()">
-                            <option value="特休">特休</option><option value="事假">事假</option>
-                            <option value="病假">病假</option><option value="公假">公假</option>
-                            <option value="婚假">婚假</option><option value="喪假">喪假</option>
-                            <option value="custom">其他</option>
-                        </select>
-                    </label>
-                    <input type="text" id="leaveCustom" placeholder="名稱" style="display:none; width:80px;" oninput="applyLeaveType()">
-                    <label>時數：<input type="number" step="0.5" id="leaveHours" style="width: 50px;" onchange="calcLeaveHours()"> 小時</label>
-                </div>
-                <div class="form-row" style="margin-bottom:0; font-size:11px;">
-                    <label>時間：<input type="time" id="leaveSt" value="08:30" onchange="calcLeaveHours()"></label>
-                    <label>至 <input type="time" id="leaveEd" value="17:30" onchange="calcLeaveHours()"></label>
-                </div>
-            </div>
-
-            <div id="workTimeSection" class="form-row">
-                <label>實際上班：<input type="time" id="stTime" value="08:30" onchange="autoCalcLateness()"></label>
-                <label>實際下班：<input type="time" id="edTime" value="17:30" onchange="autoCalcLateness()"></label>
-                <label>休息：<input type="time" id="rstSt" value="12:00">~<input type="time" id="rstEd" value="13:00"></label>
-                
-                <span style="border-left: 1px solid #ccc; padding-left: 6px; display: inline-flex; gap: 4px;">
-                    <label style="color:#c0392b;">遲：<input type="number" id="lateMins" placeholder="0" style="width: 40px;"></label>
-                    <label style="color:#d35400;">早：<input type="number" id="earlyMins" placeholder="0" style="width: 40px;"></label>
-                </span>
-            </div>
-
-            <div id="otSection" class="form-row" style="background:#f9f9f9; padding:4px; border-radius:4px; border:1px dashed #ccc;">
-                <label style="color:#2a6496;">⏰ 加班：</label>
-                <label><input type="time" id="otStart" onchange="calcOT()"></label>
-                <label>~ <input type="time" id="otEnd" onchange="calcOT()"></label>
-                <button type="button" class="btn" style="background:#6c757d; font-size:10px; padding:2px 5px;" onclick="setHolidayOT()">帶入假日加班</button>
-                <label><input type="text" id="otHours" placeholder="8" style="width: 40px;"> 時</label>
-            </div>
-
-            <div class="form-row" style="margin-top: 4px;">
-                <label>支出：
-                    <select id="expSelect" onchange="handleExpSelect()">
-                        <option value="">無</option><option value="油資">油資</option>
-                        <option value="列印">列印</option><option value="材料">材料</option>
-                        <option value="custom">其他</option>
-                    </select>
-                </label>
-                <input type="text" id="expCustom" placeholder="項目" style="display:none; width:70px;">
-                
-                <label>金額：<input type="number" id="expAmount" placeholder="185" style="width: 55px;"></label>
-                <label>備註：<input type="text" id="noteInput" placeholder="台大" style="width: 100px;"></label>
-                <button type="submit" class="btn btn-primary" style="margin-left:auto;">儲存單日</button>
-            </div>
-        </form>
-
-        <div class="sync-box">
-            <h4 style="margin:0 0 4px 0; color:#6f42c1; font-size:12px;">📲 資料備份與同步</h4>
-            <div class="form-row" style="margin-bottom:0;">
-                <button class="btn btn-sync" onclick="exportData()">📤 匯出 JSON</button>
-                <label class="btn btn-sync" style="cursor:pointer; margin-bottom:0;">
-                    📥 匯入 JSON
-                    <input type="file" id="importFileInput" accept=".json" style="display:none;" onchange="importData(event)">
-                </label>
-            </div>
-        </div>
-
-        <div style="margin-top: 10px; display: flex; gap: 8px;">
-            <button class="btn btn-pdf" style="font-size: 13px; padding: 6px 12px; flex: 1;" onclick="downloadDirectPDF()">📥 一鍵下載完美單頁 PDF</button>
-            <button class="btn btn-primary" style="font-size: 13px; padding: 6px 12px;" onclick="window.print()">🖨️ 系統列印</button>
-            <button class="btn btn-danger" style="font-size: 11px;" onclick="clearMonthData()">清空當月</button>
-        </div>
-    </div>
-
-    <!-- 表格容器 -->
-    <div class="paper-container" id="pdfContainer">
-        <h2 class="title" id="tableHeader">添盈科技有限公司員工蔡崇欽115年07月份出勤紀錄</h2>
-
-        <div class="color-legend no-print">
-            <span style="color:#555;">🎨 標示：</span>
-            <div class="legend-item"><div class="color-box" style="background-color: #ffffff;"></div>平日出勤</div>
-            <div class="legend-item"><div class="color-box" style="background-color: #fff3e0;"></div>例假日</div>
-            <div class="legend-item"><div class="color-box" style="background-color: #f3e5f5;"></div>請假</div>
-        </div>
-
-        <table class="sheet-table" id="attendanceTable">
-            <colgroup id="tableColGroup">
-                <col style="width: 7.5%;"> <!-- 出勤日期 -->
-                <col style="width: 5.5%;"> <!-- 約定上班 -->
-                <col style="width: 5.5%;"> <!-- 約定下班 -->
-                <col style="width: 5.5%;"> <!-- 實際上班 -->
-                <col style="width: 5.5%;"> <!-- 實際下班 -->
-                <col style="width: 5.5%;"> <!-- 休息始點 -->
-                <col style="width: 5.5%;"> <!-- 休息迄點 -->
-                <col style="width: 4.5%;"> <!-- 遲到 -->
-                <col style="width: 4.5%;"> <!-- 早退 -->
-                <col style="width: 5.5%;" class="col-leave"> <!-- 請假時數 -->
-                <col style="width: 5.5%;"> <!-- 加班起始 -->
-                <col style="width: 5.5%;"> <!-- 加班結束 -->
-                <col style="width: 5.0%;"> <!-- 加班總時數 -->
-                <col style="width: 7.0%;"> <!-- 實際出動總時數 -->
-                <col style="width: 12.0%;"><!-- 備註 -->
-                <col style="width: 8.0%;"> <!-- 支出 -->
-                <col style="width: 6.5%;"> <!-- 金額 -->
+        <table class="sheet-table">
+            <colgroup>
+                <col style="width: 7.5%;">  <!-- 出勤日期 -->
+                <col style="width: 5.0%;">  <!-- 約定上班 -->
+                <col style="width: 5.0%;">  <!-- 約定下班 -->
+                <col style="width: 5.0%;">  <!-- 實際上班 -->
+                <col style="width: 5.0%;">  <!-- 實際下班 -->
+                <col style="width: 5.0%;">  <!-- 休息始點 -->
+                <col style="width: 5.0%;">  <!-- 休息迄點 -->
+                <col style="width: 4.5%;">  <!-- 遲到 -->
+                <col style="width: 4.5%;">  <!-- 早退 -->
+                <col style="width: 5.0%;">  <!-- 請假時數 -->
+                <col style="width: 5.5%;">  <!-- 加班起始 -->
+                <col style="width: 5.5%;">  <!-- 加班結束 -->
+                <col style="width: 5.0%;">  <!-- 加班總時數 -->
+                <col style="width: 7.0%;">  <!-- 實際出動總時數 -->
+                <col style="width: 12.0%;"> <!-- 備註 -->
+                <col style="width: 8.0%;">  <!-- 支出 -->
+                <col style="width: 5.5%;">  <!-- 金額 -->
             </colgroup>
             <thead>
                 <tr>
                     <th rowspan="3">出勤日期</th>
+                    <th colspan="2">約定出動時間</th>
                     <th colspan="4">出勤時間</th>
-                    <th rowspan="2" colspan="2">休息時間</th>
                     <th rowspan="2" colspan="2">考勤狀況(分)</th>
-                    <th rowspan="3" class="col-leave">請假<br>時數</th>
+                    <th rowspan="3">請假<br>時數</th>
                     <th colspan="3">加班</th>
                     <th rowspan="3">實際出動<br>總時數</th>
                     <th rowspan="3">備註</th>
@@ -296,26 +126,153 @@
                     <th rowspan="3">金額</th>
                 </tr>
                 <tr>
-                    <th colspan="2">約定出動時間</th>
+                    <th rowspan="2">上班</th>
+                    <th rowspan="2">下班</th>
                     <th colspan="2">實際出動時間</th>
+                    <th rowspan="2" colspan="2">休息時間</th>
                     <th rowspan="2">起始時間</th>
                     <th rowspan="2">結束時間</th>
                     <th rowspan="2">總時數</th>
                 </tr>
                 <tr>
-                    <th>上班</th><th>下班</th>
-                    <th>上班</th><th>下班</th>
-                    <th>始點</th><th>迄點</th>
-                    <th>遲到</th><th>早退</th>
+                    <th>上班</th>
+                    <th>下班</th>
+                    <th>始點</th>
+                    <th>迄點</th>
+                    <th>遲到</th>
+                    <th>早退</th>
                 </tr>
             </thead>
-            <tbody id="sheetBody">
-                <!-- 動態生成紀錄 -->
+            <tbody>
+                <!-- 7/1 -->
+                <tr class="leave-row">
+                    <td>7/1(三)</td><td>08:30</td><td>17:30</td><td></td><td></td><td></td><td></td><td></td><td></td><td>8</td><td></td><td></td><td></td><td></td><td>員工旅遊</td><td></td><td></td>
+                </tr>
+                <!-- 7/2 -->
+                <tr class="leave-row">
+                    <td>7/2(四)</td><td>08:30</td><td>17:30</td><td></td><td></td><td></td><td></td><td></td><td></td><td>8</td><td></td><td></td><td></td><td></td><td>員工旅遊</td><td></td><td></td>
+                </tr>
+                <!-- 7/3 -->
+                <tr>
+                    <td>7/3(五)</td><td>08:30</td><td>17:30</td><td>08:30</td><td>17:30</td><td>12:00</td><td>13:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>台大</td><td></td><td></td>
+                </tr>
+                <!-- 7/4 -->
+                <tr class="weekend-row">
+                    <td>7/4(六)</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <!-- 7/5 -->
+                <tr class="weekend-row">
+                    <td>7/5(日)</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <!-- 7/6 -->
+                <tr>
+                    <td>7/6(一)</td><td>08:30</td><td>17:30</td><td>08:30</td><td>17:30</td><td>12:00</td><td>13:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>台大</td><td></td><td></td>
+                </tr>
+                <!-- 7/7 -->
+                <tr>
+                    <td>7/7(二)</td><td>08:30</td><td>17:30</td><td>08:30</td><td>17:30</td><td>12:00</td><td>13:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>台大</td><td></td><td></td>
+                </tr>
+                <!-- 7/8 -->
+                <tr>
+                    <td>7/8(三)</td><td>08:30</td><td>17:30</td><td>08:30</td><td>17:30</td><td>12:00</td><td>13:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>台大</td><td></td><td></td>
+                </tr>
+                <!-- 7/9 -->
+                <tr>
+                    <td>7/9(四)</td><td>08:30</td><td>17:30</td><td>08:30</td><td>17:30</td><td>12:00</td><td>13:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>台大</td><td></td><td></td>
+                </tr>
+                <!-- 7/10 -->
+                <tr>
+                    <td>7/10(五)</td><td>08:30</td><td>17:30</td><td>08:30</td><td>17:30</td><td>12:00</td><td>13:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>台大</td><td></td><td></td>
+                </tr>
+                <!-- 7/11 -->
+                <tr class="weekend-row">
+                    <td>7/11(六)</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <!-- 7/12 -->
+                <tr class="weekend-row">
+                    <td>7/12(日)</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <!-- 7/13 -->
+                <tr>
+                    <td>7/13(一)</td><td>08:30</td><td>17:30</td><td>08:30</td><td>17:30</td><td>12:00</td><td>13:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>台大</td><td></td><td></td>
+                </tr>
+                <!-- 7/14 -->
+                <tr>
+                    <td>7/14(二)</td><td>08:30</td><td>17:30</td><td>08:30</td><td>17:30</td><td>12:00</td><td>13:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>台大</td><td></td><td></td>
+                </tr>
+                <!-- 7/15 -->
+                <tr>
+                    <td>7/15(三)</td><td>08:30</td><td>17:30</td><td>08:30</td><td>17:30</td><td>12:00</td><td>13:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>台大</td><td></td><td></td>
+                </tr>
+                <!-- 7/16 -->
+                <tr>
+                    <td>7/16(四)</td><td>08:30</td><td>17:30</td><td>08:30</td><td>17:30</td><td>12:00</td><td>13:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>台大</td><td></td><td></td>
+                </tr>
+                <!-- 7/17 -->
+                <tr>
+                    <td>7/17(五)</td><td>08:30</td><td>17:30</td><td>08:30</td><td>17:30</td><td>12:00</td><td>13:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>台大</td><td></td><td></td>
+                </tr>
+                <!-- 7/18 -->
+                <tr class="weekend-row">
+                    <td>7/18(六)</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <!-- 7/19 -->
+                <tr class="weekend-row">
+                    <td>7/19(日)</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <!-- 7/20 -->
+                <tr class="leave-row">
+                    <td>7/20(一)</td><td>08:30</td><td>17:30</td><td></td><td></td><td></td><td></td><td></td><td></td><td>8</td><td></td><td></td><td></td><td></td><td>特休</td><td></td><td></td>
+                </tr>
+                <!-- 7/21 -->
+                <tr>
+                    <td>7/21(二)</td><td>08:30</td><td>17:30</td><td>08:30</td><td>17:30</td><td>12:00</td><td>13:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>台大</td><td></td><td></td>
+                </tr>
+                <!-- 7/22 -->
+                <tr>
+                    <td>7/22(三)</td><td>08:30</td><td>17:30</td><td>08:30</td><td>17:30</td><td>12:00</td><td>13:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>台大</td><td></td><td></td>
+                </tr>
+                <!-- 7/23 -->
+                <tr>
+                    <td>7/23(四)</td><td>08:30</td><td>17:30</td><td>08:30</td><td>17:30</td><td>12:00</td><td>13:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>台大</td><td></td><td></td>
+                </tr>
+                <!-- 7/24 -->
+                <tr>
+                    <td>7/24(五)</td><td>08:30</td><td>17:30</td><td>08:30</td><td>17:30</td><td>12:00</td><td>13:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>台大</td><td></td><td></td>
+                </tr>
+                <!-- 7/25 -->
+                <tr class="weekend-row">
+                    <td>7/25(六)</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <!-- 7/26 -->
+                <tr class="weekend-row">
+                    <td>7/26(日)</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                </tr>
+                <!-- 7/27 -->
+                <tr>
+                    <td>7/27(一)</td><td>08:30</td><td>17:30</td><td>08:30</td><td>17:30</td><td>12:00</td><td>13:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>台大</td><td></td><td></td>
+                </tr>
+                <!-- 7/28 -->
+                <tr>
+                    <td>7/28(二)</td><td>08:30</td><td>17:30</td><td>08:30</td><td>17:30</td><td>12:00</td><td>13:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>台大</td><td></td><td></td>
+                </tr>
+                <!-- 7/29 -->
+                <tr>
+                    <td>7/29(三)</td><td>08:30</td><td>17:30</td><td>08:30</td><td>17:30</td><td>12:00</td><td>13:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>台大</td><td></td><td></td>
+                </tr>
+                <!-- 7/30 -->
+                <tr>
+                    <td>7/30(四)</td><td>08:30</td><td>17:30</td><td>08:30</td><td>17:30</td><td>12:00</td><td>13:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>台大</td><td></td><td></td>
+                </tr>
+                <!-- 7/31 -->
+                <tr>
+                    <td>7/31(五)</td><td>08:30</td><td>17:30</td><td>08:30</td><td>17:30</td><td>12:00</td><td>13:00</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td>台大</td><td></td><td></td>
+                </tr>
             </tbody>
             <tfoot>
-                <tr id="tableFootTr">
-                    <td colspan="16" id="totalLabelTd" style="text-align: right; font-weight: bold; padding-right: 8px; background-color: #f8f9fa;">總計</td>
-                    <td id="totalExpense" style="font-weight: bold; color: #d9534f; background-color: #f8f9fa;">$0</td>
+                <tr>
+                    <td colspan="15" style="text-align: right; font-weight: bold; padding-right: 8px;">總計</td>
+                    <td colspan="2" style="font-weight: bold;">$0</td>
                 </tr>
             </tfoot>
         </table>
@@ -328,521 +285,5 @@
         </div>
     </div>
 
-    <script>
-        function initCurrentDate() {
-            const today = new Date();
-            const rocYear = today.getFullYear() - 1911;
-            const monthStr = String(today.getMonth() + 1).padStart(2, '0');
-
-            document.getElementById('yearNum').value = rocYear;
-            document.getElementById('monthNum').value = monthStr;
-        }
-
-        function getStorageKey() {
-            const y = document.getElementById('yearNum').value;
-            const m = document.getElementById('monthNum').value;
-            return `attendance_${y}_${m}`;
-        }
-
-        function toggleLeaveColumn() {
-            const showLeave = document.getElementById('showLeaveColToggle').checked;
-            const table = document.getElementById('attendanceTable');
-            const totalLabelTd = document.getElementById('totalLabelTd');
-
-            if (showLeave) {
-                table.classList.remove('hide-leave-col');
-                totalLabelTd.colSpan = 16;
-            } else {
-                table.classList.add('hide-leave-col');
-                totalLabelTd.colSpan = 15;
-            }
-        }
-
-        function setDefaultPlanTime() {
-            document.getElementById('planStTime').value = "08:30";
-            document.getElementById('planEdTime').value = "17:30";
-        }
-
-        function autoCalcLateness() {
-            const st = document.getElementById('stTime').value;
-            const ed = document.getElementById('edTime').value;
-
-            if (st) {
-                const [h, m] = st.split(':').map(Number);
-                const actualMins = h * 60 + m;
-                const standardMins = 8 * 60 + 30;
-                if (actualMins > standardMins) {
-                    document.getElementById('lateMins').value = actualMins - standardMins;
-                } else {
-                    document.getElementById('lateMins').value = '';
-                }
-            }
-
-            if (ed) {
-                const [h, m] = ed.split(':').map(Number);
-                const actualMins = h * 60 + m;
-                const standardMins = 17 * 60 + 30;
-                if (actualMins < standardMins) {
-                    document.getElementById('earlyMins').value = standardMins - actualMins;
-                } else {
-                    document.getElementById('earlyMins').value = '';
-                }
-            }
-        }
-
-        function loadMonthData() {
-            const name = document.getElementById('empName').value || '';
-            const y = document.getElementById('yearNum').value;
-            const m = document.getElementById('monthNum').value;
-            
-            const fullTitle = `添盈科技有限公司員工${name}${y}年${m}月份出勤紀錄`;
-            document.getElementById('tableHeader').innerText = fullTitle;
-            document.title = fullTitle;
-
-            const yearAD = parseInt(y) + 1911;
-            const month = parseInt(m);
-            const daysInMonth = new Date(yearAD, month, 0).getDate();
-            const weekNames = ["(日)", "(一)", "(二)", "(三)", "(四)", "(五)", "(六)"];
-
-            const dateSelect = document.getElementById('selectDate');
-            dateSelect.innerHTML = '';
-
-            const currentRecords = JSON.parse(localStorage.getItem(getStorageKey())) || {};
-
-            const today = new Date();
-            const todayDay = today.getDate();
-            const isCurrentMonth = (today.getFullYear() === yearAD && (today.getMonth() + 1) === month);
-
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dateObj = new Date(yearAD, month - 1, day);
-                const weekStr = weekNames[dateObj.getDay()];
-                const dateKey = `${month}/${day} ${weekStr}`;
-
-                const opt = document.createElement('option');
-                opt.value = dateKey;
-                opt.innerText = dateKey;
-                
-                if (isCurrentMonth && day === todayDay) {
-                    opt.selected = true;
-                }
-
-                dateSelect.appendChild(opt);
-            }
-
-            renderTable(daysInMonth, yearAD, month, weekNames, currentRecords);
-            loadSingleDayData();
-            toggleLeaveColumn();
-        }
-
-        function renderTable(daysInMonth, yearAD, month, weekNames, currentRecords) {
-            const tbody = document.getElementById('sheetBody');
-            tbody.innerHTML = '';
-            let totalExp = 0;
-
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dateObj = new Date(yearAD, month - 1, day);
-                const dayOfWeek = dateObj.getDay();
-                const weekStr = weekNames[dayOfWeek];
-                const dateKey = `${month}/${day} ${weekStr}`;
-
-                const data = currentRecords[dateKey] || {};
-
-                if (data.expAmount) {
-                    totalExp += parseFloat(data.expAmount) || 0;
-                }
-
-                const tr = document.createElement('tr');
-                const isLeave = data.isLeave === true;
-
-                if (isLeave) {
-                    tr.classList.add('leave-row');
-                } else if (dayOfWeek === 0 || dayOfWeek === 6) {
-                    tr.classList.add('weekend-row');
-                }
-
-                // 若平日無特別設定約定時間，自動預設 08:30 與 17:30
-                const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-                const defaultPlanSt = isWeekend ? '' : '08:30';
-                const defaultPlanEd = isWeekend ? '' : '17:30';
-
-                const planSt = data.planStTime !== undefined ? data.planStTime : defaultPlanSt;
-                const planEd = data.planEdTime !== undefined ? data.planEdTime : defaultPlanEd;
-
-                const stTime = isLeave ? '' : (data.stTime || '');
-                const edTime = isLeave ? '' : (data.edTime || '');
-                const rstSt = isLeave ? '' : (data.rstSt || '');
-                const rstEd = isLeave ? '' : (data.rstEd || '');
-
-                tr.innerHTML = `
-                    <td>${dateKey}</td>
-                    <td>${planSt}</td>
-                    <td>${planEd}</td>
-                    <td>${stTime}</td>
-                    <td>${edTime}</td>
-                    <td>${rstSt}</td>
-                    <td>${rstEd}</td>
-                    <td style="color: #c0392b; font-weight: bold;">${isLeave ? '' : (data.lateMins || '')}</td>
-                    <td style="color: #d35400; font-weight: bold;">${isLeave ? '' : (data.earlyMins || '')}</td>
-                    <td class="col-leave" style="color: #6f42c1; font-weight: bold;">${isLeave ? (data.leaveHours || '8') : ''}</td>
-                    <td>${data.otStart || ''}</td>
-                    <td>${data.otEnd || ''}</td>
-                    <td>${data.otHours || ''}</td>
-                    <td></td>
-                    <td style="white-space: pre-line;">${data.noteInput || ''}</td>
-                    <td>${data.expNote || ''}</td>
-                    <td>${data.expAmount ? '$' + data.expAmount : ''}</td>
-                `;
-                tbody.appendChild(tr);
-            }
-
-            document.getElementById('totalExpense').innerText = totalExp > 0 ? '$' + totalExp : '$0';
-        }
-
-        function toggleLeaveMode() {
-            const isLeave = document.getElementById('isLeave').checked;
-            const leaveSection = document.getElementById('leaveSection');
-            const workTimeSection = document.getElementById('workTimeSection');
-            const otSection = document.getElementById('otSection');
-
-            if (isLeave) {
-                leaveSection.style.display = 'block';
-                workTimeSection.style.display = 'none';
-                otSection.style.display = 'none';
-                
-                document.getElementById('otStart').value = '';
-                document.getElementById('otEnd').value = '';
-                document.getElementById('otHours').value = '';
-                document.getElementById('lateMins').value = '';
-                document.getElementById('earlyMins').value = '';
-                
-                applyLeaveType();
-                calcLeaveHours();
-            } else {
-                leaveSection.style.display = 'none';
-                workTimeSection.style.display = 'flex';
-                otSection.style.display = 'flex';
-            }
-        }
-
-        function calcLeaveHours() {
-            const start = document.getElementById('leaveSt').value;
-            const end = document.getElementById('leaveEd').value;
-
-            if (start && end) {
-                const s = new Date(`1970-01-01T${start}:00`);
-                const e = new Date(`1970-01-01T${end}:00`);
-                let diff = (e - s) / (1000 * 60 * 60);
-
-                if (diff < 0) diff += 24;
-                if (start <= "12:00" && end >= "13:00" && diff > 1) {
-                    diff -= 1;
-                }
-
-                document.getElementById('leaveHours').value = diff > 0 ? diff.toFixed(1).replace('.0', '') : '8';
-            }
-        }
-
-        function applyLeaveType() {
-            const leaveType = document.getElementById('leaveType').value;
-            const leaveCustom = document.getElementById('leaveCustom');
-            let text = leaveType;
-
-            if (leaveType === 'custom') {
-                leaveCustom.style.display = 'inline-block';
-                text = leaveCustom.value;
-            } else {
-                leaveCustom.style.display = 'none';
-            }
-
-            document.getElementById('noteInput').value = text;
-        }
-
-        function calcOT() {
-            const start = document.getElementById('otStart').value;
-            const end = document.getElementById('otEnd').value;
-            const rstSt = document.getElementById('rstSt').value || "12:00";
-            const rstEd = document.getElementById('rstEd').value || "13:00";
-
-            if (start && end) {
-                const s = new Date(`1970-01-01T${start}:00`);
-                const e = new Date(`1970-01-01T${end}:00`);
-                let diff = (e - s) / (1000 * 60 * 60);
-
-                if (diff < 0) diff += 24;
-                if (start <= rstSt && end >= rstEd && diff > 1) {
-                    diff -= 1;
-                }
-
-                document.getElementById('otHours').value = diff > 0 ? diff.toFixed(1).replace('.0', '') : '';
-            }
-        }
-
-        function setHolidayOT() {
-            document.getElementById('otStart').value = "08:30";
-            document.getElementById('otEnd').value = "17:30";
-            calcOT();
-        }
-
-        function handleExpSelect() {
-            const val = document.getElementById('expSelect').value;
-            const customInput = document.getElementById('expCustom');
-            if (val === 'custom') {
-                customInput.style.display = 'inline-block';
-                customInput.value = '';
-            } else {
-                customInput.style.display = 'none';
-            }
-        }
-
-        function applyBatchWork() {
-            if (!confirm("確定要將本月所有『週一至週五』批次填入預設的約定與實際出勤時間嗎？")) return;
-
-            const storageKey = getStorageKey();
-            const currentRecords = JSON.parse(localStorage.getItem(storageKey)) || {};
-
-            const yRoc = parseInt(document.getElementById('yearNum').value);
-            const yearAD = yRoc + 1911;
-            const month = parseInt(document.getElementById('monthNum').value);
-            const daysInMonth = new Date(yearAD, month, 0).getDate();
-            const weekNames = ["(日)", "(一)", "(二)", "(三)", "(四)", "(五)", "(六)"];
-
-            const bPlanSt = document.getElementById('batchPlanSt').value;
-            const bPlanEd = document.getElementById('batchPlanEd').value;
-            const bSt = document.getElementById('batchSt').value;
-            const bEd = document.getElementById('batchEd').value;
-            const bRstSt = document.getElementById('batchRstSt').value;
-            const bRstEd = document.getElementById('batchRstEd').value;
-            const bNote = document.getElementById('batchNote').value;
-
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dateObj = new Date(yearAD, month - 1, day);
-                const dayOfWeek = dateObj.getDay();
-
-                if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-                    const dateKey = `${month}/${day} ${weekNames[dayOfWeek]}`;
-                    const oldData = currentRecords[dateKey] || {};
-
-                    currentRecords[dateKey] = {
-                        ...oldData,
-                        isLeave: false,
-                        planStTime: bPlanSt,
-                        planEdTime: bPlanEd,
-                        stTime: bSt,
-                        edTime: bEd,
-                        rstSt: bRstSt,
-                        rstEd: bRstEd,
-                        lateMins: '',
-                        earlyMins: '',
-                        noteInput: bNote
-                    };
-                }
-            }
-
-            localStorage.setItem(storageKey, JSON.stringify(currentRecords));
-            loadMonthData();
-            alert("已成功完成全月平日的批次填寫！");
-        }
-
-        function loadSingleDayData() {
-            const dateKey = document.getElementById('selectDate').value;
-            if (!dateKey) return;
-
-            const currentRecords = JSON.parse(localStorage.getItem(getStorageKey())) || {};
-            const data = currentRecords[dateKey] || {};
-
-            const isLeave = data.isLeave === true;
-            document.getElementById('isLeave').checked = isLeave;
-
-            // 判斷是否為週末
-            const isWeekend = dateKey.includes('(日)') || dateKey.includes('(六)');
-            const defaultPlanSt = isWeekend ? '' : '08:30';
-            const defaultPlanEd = isWeekend ? '' : '17:30';
-
-            document.getElementById('planStTime').value = data.planStTime !== undefined ? data.planStTime : defaultPlanSt;
-            document.getElementById('planEdTime').value = data.planEdTime !== undefined ? data.planEdTime : defaultPlanEd;
-
-            document.getElementById('stTime').value = data.stTime || "08:30";
-            document.getElementById('edTime').value = data.edTime || "17:30";
-            document.getElementById('rstSt').value = data.rstSt || "12:00";
-            document.getElementById('rstEd').value = data.rstEd || "13:00";
-            
-            document.getElementById('lateMins').value = data.lateMins !== undefined ? data.lateMins : '';
-            document.getElementById('earlyMins').value = data.earlyMins !== undefined ? data.earlyMins : '';
-
-            document.getElementById('noteInput').value = data.noteInput || "";
-            document.getElementById('expAmount').value = data.expAmount || "";
-            
-            document.getElementById('otStart').value = data.otStart || "";
-            document.getElementById('otEnd').value = data.otEnd || "";
-            document.getElementById('otHours').value = data.otHours || "";
-
-            document.getElementById('leaveSt').value = data.leaveSt || "08:30";
-            document.getElementById('leaveEd').value = data.leaveEd || "17:30";
-            document.getElementById('leaveHours').value = data.leaveHours || "8";
-
-            toggleLeaveMode();
-
-            if (isLeave) {
-                const leaveTypeSelect = document.getElementById('leaveType');
-                const leaveCustom = document.getElementById('leaveCustom');
-                if (["特休", "事假", "病假", "公假", "婚假", "喪假"].includes(data.noteInput)) {
-                    leaveTypeSelect.value = data.noteInput;
-                    leaveCustom.style.display = "none";
-                } else {
-                    leaveTypeSelect.value = "custom";
-                    leaveCustom.style.display = "inline-block";
-                    leaveCustom.value = data.noteInput || "";
-                }
-            }
-
-            const expVal = data.expNote || "";
-            const expSelect = document.getElementById('expSelect');
-            const expCustom = document.getElementById('expCustom');
-
-            if (["油資", "列印", "材料", ""].includes(expVal)) {
-                expSelect.value = expVal;
-                expCustom.style.display = "none";
-            } else {
-                expSelect.value = "custom";
-                expCustom.style.display = "inline-block";
-                expCustom.value = expVal;
-            }
-        }
-
-        function saveRecord(e) {
-            e.preventDefault();
-            const storageKey = getStorageKey();
-            const currentRecords = JSON.parse(localStorage.getItem(storageKey)) || {};
-            const dateKey = document.getElementById('selectDate').value;
-            const isLeave = document.getElementById('isLeave').checked;
-
-            let finalExpNote = document.getElementById('expSelect').value;
-            if (finalExpNote === 'custom') {
-                finalExpNote = document.getElementById('expCustom').value;
-            }
-
-            currentRecords[dateKey] = {
-                isLeave: isLeave,
-                planStTime: document.getElementById('planStTime').value,
-                planEdTime: document.getElementById('planEdTime').value,
-                leaveSt: isLeave ? document.getElementById('leaveSt').value : '',
-                leaveEd: isLeave ? document.getElementById('leaveEd').value : '',
-                leaveHours: isLeave ? document.getElementById('leaveHours').value : '',
-                stTime: isLeave ? '' : document.getElementById('stTime').value,
-                edTime: isLeave ? '' : document.getElementById('edTime').value,
-                rstSt: isLeave ? '' : document.getElementById('rstSt').value,
-                rstEd: isLeave ? '' : document.getElementById('rstEd').value,
-                lateMins: isLeave ? '' : document.getElementById('lateMins').value,
-                earlyMins: isLeave ? '' : document.getElementById('earlyMins').value,
-                otStart: isLeave ? '' : document.getElementById('otStart').value,
-                otEnd: isLeave ? '' : document.getElementById('otEnd').value,
-                otHours: isLeave ? '' : document.getElementById('otHours').value,
-                noteInput: document.getElementById('noteInput').value,
-                expNote: finalExpNote,
-                expAmount: document.getElementById('expAmount').value
-            };
-
-            localStorage.setItem(storageKey, JSON.stringify(currentRecords));
-            loadMonthData();
-            alert(`已更新 ${dateKey} 資料！`);
-        }
-
-        function clearMonthData() {
-            const m = document.getElementById('monthNum').value;
-            if (confirm(`確定要清空 ${m} 月的所有打卡紀錄嗎？`)) {
-                localStorage.removeItem(getStorageKey());
-                loadMonthData();
-            }
-        }
-
-        function downloadDirectPDF() {
-            const name = document.getElementById('empName').value || '';
-            const y = document.getElementById('yearNum').value;
-            const m = document.getElementById('monthNum').value;
-            const fileName = `添盈科技有限公司員工${name}${y}年${m}月份出勤紀錄.pdf`;
-
-            const element = document.getElementById('pdfContainer');
-            
-            const noPrintElems = element.querySelectorAll('.no-print');
-            noPrintElems.forEach(el => el.style.display = 'none');
-
-            window.scrollTo(0, 0);
-
-            const opt = {
-                margin:       [3, 3, 3, 3],
-                filename:     fileName,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, scrollY: 0, scrollX: 0 },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                pagebreak:    { mode: 'avoid-all' }
-            };
-
-            html2pdf().set(opt).from(element).save().then(() => {
-                noPrintElems.forEach(el => el.style.display = '');
-            });
-        }
-
-        function exportData() {
-            const allData = {};
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key.startsWith('attendance_')) {
-                    allData[key] = JSON.parse(localStorage.getItem(key));
-                }
-            }
-
-            if (Object.keys(allData).length === 0) {
-                alert("目前沒有任何打卡紀錄可以匯出！");
-                return;
-            }
-
-            const name = document.getElementById('empName').value || '員工';
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allData, null, 2));
-            const downloadAnchor = document.createElement('a');
-            
-            const today = new Date().toISOString().slice(0, 10);
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `${name}_出勤紀錄備份_${today}.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-        }
-
-        function importData(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const importedData = JSON.parse(e.target.result);
-                    let importedCount = 0;
-
-                    for (const key in importedData) {
-                        if (key.startsWith('attendance_')) {
-                            localStorage.setItem(key, JSON.stringify(importedData[key]));
-                            importedCount++;
-                        }
-                    }
-
-                    if (importedCount > 0) {
-                        alert("🎉 資料匯入成功！系統已同步最新打卡紀錄。");
-                        loadMonthData();
-                    } else {
-                        alert("⚠️ 匯入失敗：檔案內無有效的出勤紀錄格式。");
-                    }
-                } catch (err) {
-                    alert("❌ 匯入失敗：無法讀取此檔案，請確認檔案格式是否正確！");
-                }
-                
-                event.target.value = '';
-            };
-
-            reader.readAsText(file);
-        }
-
-        initCurrentDate();
-        loadMonthData();
-    </script>
 </body>
 </html>
