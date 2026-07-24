@@ -24,7 +24,7 @@
         .btn-success { background-color: #28a745; }
         .btn-warning { background-color: #e67e22; }
         .btn-danger { background-color: #dc3545; }
-        .btn-sync { background-color: #6f42c1; } /* 同步專用紫色 */
+        .btn-sync { background-color: #6f42c1; }
 
         .batch-box {
             background-color: #fff8e7;
@@ -65,7 +65,7 @@
         .paper-container {
             background: white;
             width: 100%;
-            max-width: 950px;
+            max-width: 980px;
             margin: 0 auto;
             padding: 20px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
@@ -80,29 +80,31 @@
             color: #1a252f;
         }
 
-        /* 表格美化樣式 */
+        /* 表格經典深藍色樣式 */
         table.sheet-table {
             width: 100%;
             border-collapse: collapse;
             font-size: 11px;
             text-align: center;
             table-layout: fixed;
-            border: 2px solid #2c3e50;
+            border: 1px solid #2b3e50;
         }
 
         table.sheet-table th, table.sheet-table td {
-            border: 1px solid #34495e;
-            padding: 3px 1px;
-            height: 22px;
+            border: 1px solid #3a506b;
+            padding: 4px 2px;
+            height: 24px;
             word-break: break-all;
             vertical-align: middle;
         }
 
-        /* 表格標頭：典雅深藍灰背景 */
+        /* 表格標頭：還原經典深藍色背景 `#2d4861` */
         table.sheet-table th {
-            background-color: #34495e !important;
+            background-color: #2d4861 !important;
             color: #ffffff !important;
-            font-weight: bold;
+            font-weight: normal;
+            font-size: 12px;
+            line-height: 1.2;
         }
 
         /* 平常工作日懸停效果 */
@@ -133,7 +135,7 @@
             .no-print { display: none !important; }
             .paper-container { box-shadow: none; padding: 0; width: 100%; max-width: none; }
             @page { size: A4 portrait; margin: 8mm; }
-            th { background-color: #34495e !important; color: #ffffff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            th { background-color: #2d4861 !important; color: #ffffff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .weekend-row td { background-color: #fff3e0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .leave-row td { background-color: #f3e5f5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
@@ -280,7 +282,7 @@
 
         <table class="sheet-table">
             <colgroup>
-                <col style="width: 8%;">  <!-- 出勤日期 -->
+                <col style="width: 7%;">  <!-- 出勤日期 -->
                 <col style="width: 5%;">  <!-- 約定上班 -->
                 <col style="width: 5%;">  <!-- 約定下班 -->
                 <col style="width: 5%;">  <!-- 實際上班 -->
@@ -289,34 +291,34 @@
                 <col style="width: 5%;">  <!-- 休息迄點 -->
                 <col style="width: 4%;">  <!-- 遲到 -->
                 <col style="width: 4%;">  <!-- 早退 -->
-                <col style="width: 4%;">  <!-- 請假時數 -->
+                <col style="width: 5%;">  <!-- 請假時數 -->
                 <col style="width: 5%;">  <!-- 加班起始 -->
                 <col style="width: 5%;">  <!-- 加班結束 -->
                 <col style="width: 5%;">  <!-- 加班總時數 -->
                 <col style="width: 7%;">  <!-- 實際出動總時數 -->
-                <col style="width: 15%;"> <!-- 備註 -->
-                <col style="width: 9%;">  <!-- 支出 -->
-                <col style="width: 9%;">  <!-- 金額 -->
+                <col style="width: 14%;"> <!-- 備註 -->
+                <col style="width: 8%;">  <!-- 支出 -->
+                <col style="width: 6%;">  <!-- 金額 -->
             </colgroup>
             <thead>
                 <tr>
-                    <th rowspan="3" style="font-size: 13px;">出勤日期</th>
-                    <th colspan="4" style="font-size: 13px;">出勤時間</th>
+                    <th rowspan="3">出勤日期</th>
+                    <th colspan="4">出勤時間</th>
                     <th rowspan="2" colspan="2">休息時間</th>
                     <th rowspan="2" colspan="2">考勤狀況(分)</th>
-                    <th rowspan="3" style="font-size: 9px; padding: 0;">請假時數</th>
-                    <th colspan="3" style="font-size: 13px;">加班</th>
-                    <th rowspan="3" style="font-size: 9px;">實際出動<br>總時數</th>
-                    <th rowspan="3" style="font-size: 13px;">備註</th>
-                    <th rowspan="3" style="font-size: 13px;">支出</th>
-                    <th rowspan="3" style="font-size: 13px;">金額</th>
+                    <th rowspan="3">請假<br>時數</th>
+                    <th colspan="3">加班</th>
+                    <th rowspan="3">實際出動<br>總時數</th>
+                    <th rowspan="3">備註</th>
+                    <th rowspan="3">支出</th>
+                    <th rowspan="3">金額</th>
                 </tr>
                 <tr>
-                    <th colspan="2" style="font-size: 10px;">約定出動時間</th>
-                    <th colspan="2" style="font-size: 10px;">實際出動時間</th>
-                    <th rowspan="2" style="font-size: 9px;">起始時間</th>
-                    <th rowspan="2" style="font-size: 9px;">結束時間</th>
-                    <th rowspan="2" style="font-size: 9px;">總時數</th>
+                    <th colspan="2">約定出動時間</th>
+                    <th colspan="2">實際出動時間</th>
+                    <th rowspan="2">起始時間</th>
+                    <th rowspan="2">結束時間</th>
+                    <th rowspan="2">總時數</th>
                 </tr>
                 <tr>
                     <th>上班</th><th>下班</th>
@@ -473,7 +475,6 @@
 
                 if (diff < 0) diff += 24;
 
-                // 扣除 12:00 ~ 13:00 午休時間
                 if (start <= "12:00" && end >= "13:00" && diff > 1) {
                     diff -= 1;
                 }
