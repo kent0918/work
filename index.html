@@ -10,7 +10,7 @@
         * { box-sizing: border-box; }
         body { font-family: "Microsoft JhengHei", "微軟正黑體", Arial, sans-serif; margin: 12px; color: #333; background-color: #f0f2f5; }
 
-        /* 網頁面板 (列印時隱藏) */
+        /* 網頁面板 (列印/轉PDF時隱藏) */
         .no-print {
             background: #ffffff;
             padding: 12px 15px;
@@ -64,32 +64,32 @@
         .legend-item { display: flex; align-items: center; gap: 4px; }
         .color-box { width: 14px; height: 14px; border-radius: 3px; border: 1px solid #ccc; }
 
-        /* A4 紙張與標準表格容器 (手機畫面上允許左右滑動) */
+        /* A4 紙張與標準表格容器 (手機畫面上允許左右橫向滑動) */
         .paper-container {
             background: white;
             width: 100%;
             max-width: 960px;
             margin: 0 auto;
-            padding: 15px;
+            padding: 10px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            overflow-x: auto; /* 📱 手機畫面支援左右橫向滑動，避免欄位被擠爆 */
+            overflow-x: auto; /* 📱 手機瀏覽時支援橫向滑動 */
         }
 
         h2.title {
             text-align: center;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
-            margin: 0 0 10px 0;
+            margin: 0 0 6px 0;
             letter-spacing: 0.5px;
             color: #1a252f;
         }
 
-        /* 表格結構樣式 */
+        /* 表格結構樣式 (調緊列高，確保 31 天極致鎖定在 A4 單頁內) */
         table.sheet-table {
             width: 100%;
-            min-width: 800px; /* 手機上維持基本寬度不變形 */
+            min-width: 750px;
             border-collapse: collapse;
-            font-size: 11px;
+            font-size: 10px;
             text-align: center;
             table-layout: fixed;
             border: 1px solid #4a637d;
@@ -97,8 +97,8 @@
 
         table.sheet-table th, table.sheet-table td {
             border: 1px solid #4a637d;
-            padding: 2px 1px;
-            height: 20px;
+            padding: 1px 0px;
+            height: 15px; /* 緊湊高度 */
             word-break: break-all;
             vertical-align: middle;
         }
@@ -108,7 +108,7 @@
             background-color: #dce8f5 !important;
             color: #1c2d42 !important;
             font-weight: bold;
-            font-size: 11px;
+            font-size: 10px;
             line-height: 1.1;
         }
 
@@ -133,13 +133,13 @@
         }
 
         .footer-notes {
-            margin-top: 8px;
-            font-size: 9px;
-            line-height: 1.3;
+            margin-top: 6px;
+            font-size: 8px;
+            line-height: 1.25;
             color: #555;
         }
 
-        /* 🖨️ 列印專用 CSS（極致縮小邊距與高度，完美鎖定在單頁 A4） */
+        /* 🖨️ 列印與 PDF 輸出專用 CSS */
         @media print {
             body { background: white; margin: 0; padding: 0; }
             .no-print { display: none !important; }
@@ -152,15 +152,15 @@
             }
             @page { 
                 size: A4 portrait; 
-                margin: 5mm 6mm; /* 超緊湊邊距 */
+                margin: 3mm 4mm; /* 超緊湊邊距 */
             }
-            h2.title { font-size: 15px; margin-bottom: 6px; }
-            table.sheet-table { min-width: 100% !important; font-size: 10px !important; }
-            table.sheet-table th, table.sheet-table td { padding: 1px 0px !important; height: 18px !important; }
+            h2.title { font-size: 14px; margin-bottom: 4px; }
+            table.sheet-table { min-width: 100% !important; font-size: 9.5px !important; }
+            table.sheet-table th, table.sheet-table td { padding: 0px !important; height: 14.5px !important; }
             th { background-color: #dce8f5 !important; color: #1c2d42 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .weekend-row td { background-color: #fff3e0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .leave-row td { background-color: #f3e5f5 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .footer-notes { font-size: 8px !important; margin-top: 4px; }
+            .footer-notes { font-size: 7.5px !important; margin-top: 2px; }
         }
     </style>
 </head>
@@ -290,7 +290,7 @@
 
         <!-- 🖨️ 列印/轉 PDF 功能按鈕區 -->
         <div style="margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
-            <!-- 📥 直接下載完美單頁 PDF (最強推薦) -->
+            <!-- 📥 直接下載完美單頁 PDF -->
             <button class="btn btn-pdf" style="font-size: 14px; padding: 8px 16px; flex: 1;" onclick="downloadDirectPDF()">📥 一鍵下載完美單頁 PDF</button>
             <!-- 瀏覽器選單列印 -->
             <button class="btn btn-primary" style="font-size: 13px; padding: 8px 12px;" onclick="window.print()">🖨️ 系統列印</button>
@@ -776,7 +776,7 @@
             }
         }
 
-        /* 🚀 核心新增：一鍵直接產生完美單頁 PDF 下載 */
+        /* 🚀 修正版：強制縮放鎖定單頁 PDF */
         function downloadDirectPDF() {
             const name = document.getElementById('empName').value || '';
             const y = document.getElementById('yearNum').value;
@@ -785,16 +785,24 @@
 
             const element = document.getElementById('pdfContainer');
             
-            // PDF 輸出設定檔
+            // 暫時將視窗置頂，防止手機捲動造成的擷取偏差
+            window.scrollTo(0, 0);
+
             const opt = {
-                margin:       [5, 5, 5, 5], // 縮小邊距 (上, 左, 下, 右 mm)
+                margin:       [3, 3, 3, 3], // 上左下右 3mm 超窄邊距
                 filename:     fileName,
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true }, // 提升渲染清晰度
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                html2canvas:  { 
+                    scale: 2, 
+                    useCORS: true,
+                    scrollY: 0,
+                    scrollX: 0
+                },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: 'avoid-all' } // 強制縮放到單頁
             };
 
-            // 執行渲染並下載
+            // 執行轉檔與下載
             html2pdf().set(opt).from(element).save();
         }
 
