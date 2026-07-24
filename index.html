@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>添盈科技有限公司員工出勤紀錄表</title>
+    <title>添盈科技有限公司員工出勤紀錄</title>
     <style>
         * { box-sizing: border-box; }
         body { font-family: "Microsoft JhengHei", "微軟正黑體", Arial, sans-serif; margin: 15px; color: #333; background-color: #f0f2f5; }
@@ -431,7 +431,11 @@
             const y = document.getElementById('yearNum').value;
             const m = document.getElementById('monthNum').value;
             
-            document.getElementById('tableHeader').innerText = `添盈科技有限公司員工${name}${y}年${m}月份出勤紀錄`;
+            const fullTitle = `添盈科技有限公司員工${name}${y}年${m}月份出勤紀錄`;
+            document.getElementById('tableHeader').innerText = fullTitle;
+            
+            // 💡 動態設定網頁標題，讓瀏覽器「另存為 PDF」時自動套用此預設檔名
+            document.title = fullTitle;
 
             const yearAD = parseInt(y) + 1911;
             const month = parseInt(m);
