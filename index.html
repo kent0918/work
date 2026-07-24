@@ -3,164 +3,289 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>每日出勤紀錄表</title>
+    <title>添盈科技有限公司員工出勤紀錄表</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f6f9; }
-        h2 { color: #333; }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
-        label { font-size: 14px; font-weight: bold; margin-top: 5px; }
-        input, select { width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { margin-top: 15px; padding: 10px 15px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #0056b3; }
-        table { width: 100%; border-collapse: collapse; background: white; margin-top: 10px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; font-size: 14px; }
-        th { background-color: #007bff; color: white; }
-        .btn-danger { background: #dc3545; padding: 5px 10px; margin: 0; }
-        .btn-danger:hover { background: #a71d2a; }
+        /* 基礎樣式 */
+        * { box-sizing: border-box; }
+        body { font-family: "Microsoft JhengHei", "微軟正黑體", Arial, sans-serif; margin: 15px; color: #000; background-color: #f0f2f5; }
+
+        /* 網頁版操作面板 (列印時會隱藏) */
+        .no-print {
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .form-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; align-items: center; }
+        .form-row label { font-weight: bold; font-size: 13px; }
+        .form-row input, .form-row select { padding: 5px; border: 1px solid #ccc; border-radius: 4px; }
+        .btn { padding: 6px 16px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; color: white; }
+        .btn-primary { background-color: #0066cc; }
+        .btn-success { background-color: #28a745; }
+        .btn-danger { background-color: #dc3545; }
+
+        /* A4 列印與公司表格標準格式 */
+        .paper-container {
+            background: white;
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        h2.title {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 5px 0 15px 0;
+            letter-spacing: 1px;
+        }
+
+        table.sheet-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            text-align: center;
+        }
+
+        table.sheet-table th, table.sheet-table td {
+            border: 1px solid #000;
+            padding: 4px 2px;
+            height: 22px;
+        }
+
+        table.sheet-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        .footer-notes {
+            margin-top: 10px;
+            font-size: 10px;
+            line-height: 1.4;
+        }
+
+        /* 專門處理列印樣式 (點擊列印/存成PDF時效果) */
+        @media print {
+            body { background: white; margin: 0; padding: 0; }
+            .no-print { display: none !important; }
+            .paper-container { box-shadow: none; padding: 0; width: 100%; max-width: none; }
+            @page { size: A4 portrait; margin: 10mm; }
+            th { background-color: #f2f2f2 !important; -webkit-print-color-adjust: exact; }
+        }
     </style>
 </head>
 <body>
 
-    <h2>📅 每日出勤紀錄系統</h2>
+    <!-- 1. 每日輸入與控制面板 (畫面上看得見，列印時自動隱藏) -->
+    <div class="no-print">
+        <h3 style="margin-top:0;">📝 每日打卡填寫面板</h3>
+        <div class="form-row">
+            <label>員工姓名：<input type="text" id="empName" value="蔡崇欽" style="width: 80px;"></label>
+            <label>年份：<input type="number" id="yearNum" value="115" style="width: 60px;"> 年</label>
+            <label>月份：
+                <select id="monthNum" onchange="generateMonthDays()">
+                    <option value="01">01</option><option value="02">02</option>
+                    <option value="03">03</option><option value="04">04</option>
+                    <option value="05">05</option><option value="06" selected>06</option>
+                    <option value="07">07</option><option value="08">08</option>
+                    <option value="09">09</option><option value="10">10</option>
+                    <option value="11">11</option><option value="12">12</option>
+                </select> 月
+            </label>
+            <button class="btn btn-primary" onclick="updateHeader()">更新表頭資訊</button>
+        </div>
 
-    <!-- 輸入表單 -->
-    <div class="card">
-        <h3>新增 / 每日打卡</h3>
-        <form id="attendanceForm">
-            <div class="form-grid">
-                <div>
-                    <label>出勤日期</label>
-                    <input type="date" id="date" required>
-                </div>
-                <div>
-                    <label>上班時間</label>
-                    <input type="time" id="startTime" value="08:30">
-                </div>
-                <div>
-                    <label>下班時間</label>
-                    <input type="time" id="endTime" value="17:30">
-                </div>
-                <div>
-                    <label>休息開始</label>
-                    <input type="time" id="restStart" value="12:00">
-                </div>
-                <div>
-                    <label>休息結束</label>
-                    <input type="time" id="restEnd" value="13:00">
-                </div>
-                <div>
-                    <label>支出金額</label>
-                    <input type="number" id="expense" placeholder="例如: 185">
-                </div>
-                <div style="grid-column: span 2;">
-                    <label>備註 (地點/假別/項目)</label>
-                    <input type="text" id="note" placeholder="例如：台大 / 油資 / 特休">
-                </div>
+        <hr style="border: 0.5px solid #eee; margin: 12px 0;">
+
+        <form id="recordForm" onsubmit="saveRecord(event)">
+            <div class="form-row">
+                <label>選擇日期：<select id="selectDate"></select></label>
+                <label>實際上班：<input type="time" id="stTime" value="08:30"></label>
+                <label>實際下班：<input type="time" id="edTime" value="17:30"></label>
+                <label>休息：<input type="time" id="rstSt" value="12:00"> ~ <input type="time" id="rstEd" value="13:00"></label>
             </div>
-            <button type="submit">儲存紀錄</button>
+            <div class="form-row">
+                <label>備註地點/事由：<input type="text" id="noteInput" placeholder="例如：台大 或 特休/家裡有事" style="width: 200px;"></label>
+                <label>支出項目：<input type="text" id="expNote" placeholder="例如：油資/列印" style="width: 100px;"></label>
+                <label>支出金額：<input type="number" id="expAmount" placeholder="185" style="width: 80px;"></label>
+                <button type="submit" class="btn btn-success">儲存此日紀錄</button>
+            </div>
         </form>
+
+        <div style="margin-top: 15px;">
+            <button class="btn btn-primary" style="background:#17a2b8;" onclick="window.print()">🖨️ 匯出與公司相同格式之 PDF</button>
+            <button class="btn btn-danger" style="margin-left:10px;" onclick="clearAllData()">清空本月資料</button>
+        </div>
     </div>
 
-    <!-- 出勤表格 -->
-    <div class="card">
-        <h3>出勤明細表</h3>
-        <button onclick="exportCSV()" style="background:#28a745; margin-bottom:10px;">📥 匯出 CSV Excel 檔</button>
-        <table id="recordsTable">
+    <!-- 2. 完全還原公司樣式的表格區塊 -->
+    <div class="paper-container">
+        <h2 class="title" id="tableHeader">添盈科技有限公司員工蔡崇欽115年06月份出勤紀錄</h2>
+
+        <table class="sheet-table">
             <thead>
                 <tr>
-                    <th>日期</th>
-                    <th>上班</th>
-                    <th>下班</th>
-                    <th>休息時間</th>
-                    <th>支出金額</th>
-                    <th>備註</th>
-                    <th>操作</th>
+                    <th rowspan="3" style="width: 8%;">出勤日期</th>
+                    <th colspan="2">約定出動時間</th>
+                    <th colspan="2">實際出動時間</th>
+                    <th colspan="2">休息時間</th>
+                    <th colspan="2">考勤狀況(分)</th>
+                    <th rowspan="3" style="width: 6%;">請假<br>時數</th>
+                    <th colspan="2">加班</th>
+                    <th rowspan="3" style="width: 8%;">實際出動<br>總時數</th>
+                    <th rowspan="3" style="width: 18%;">備註</th>
+                    <th colspan="2">支出</th>
                 </tr>
+                <tr>
+                    <th rowspan="2">上班</th>
+                    <th rowspan="2">下班</th>
+                    <th rowspan="2">上班</th>
+                    <th rowspan="2">下班</th>
+                    <th rowspan="2">始點</th>
+                    <th rowspan="2">迄點</th>
+                    <th rowspan="2">遲到</th>
+                    <th rowspan="2">早退</th>
+                    <th rowspan="2">起始時間</th>
+                    <th rowspan="2">結束時間</th>
+                    <th rowspan="2">項目/備註</th>
+                    <th rowspan="2">金額</th>
+                </tr>
+                <tr></tr>
             </thead>
-            <tbody></tbody>
+            <tbody id="sheetBody">
+                <!-- 由 JavaScript 動態生成日期與填入的內容 -->
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="14" style="text-align: right; font-weight: bold; padding-right: 15px;">總計</td>
+                    <td colspan="2" id="totalExpense" style="font-weight: bold; color: red;">$0</td>
+                </tr>
+            </tfoot>
         </table>
+
+        <!-- 法規與註記 (完全還原) -->
+        <div class="footer-notes">
+            <div>註1：出勤紀錄，應逐日記載勞工出勤情形至分鐘為止。</div>
+            <div>註2：雇主應置備勞工出勤紀錄，並保存五年。</div>
+            <div>註3：勞工向雇主申請其出勤紀錄副本或影本時，雇主不得拒絕。</div>
+            <div>註4：除本範例外，出動卡、刷卡機、門禁卡、生物特徵辨識系統、電腦出勤紀錄系統或其他可覈實記載出勤時間工具所為之紀錄，皆可作為勞工出勤紀錄。</div>
+        </div>
     </div>
 
     <script>
-        // 初始化預設日期為今天
-        document.getElementById('date').valueAsDate = new Date();
+        let currentRecords = JSON.parse(localStorage.getItem('company_attendance')) || {};
 
-        // 讀取 LocalStorage 資料
-        let records = JSON.parse(localStorage.getItem('attendanceRecords')) || [];
-
-        function renderTable() {
-            const tbody = document.querySelector('#recordsTable tbody');
-            tbody.innerHTML = '';
-            
-            // 依日期排序
-            records.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-            records.forEach((item, index) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${item.date}</td>
-                    <td>${item.startTime || '-'}</td>
-                    <td>${item.endTime || '-'}</td>
-                    <td>${item.restStart && item.restEnd ? item.restStart + '~' + item.restEnd : '-'}</td>
-                    <td>${item.expense ? '$' + item.expense : '-'}</td>
-                    <td>${item.note || '-'}</td>
-                    <td><button class="btn-danger" onclick="deleteRecord(${index})">刪除</button></td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            localStorage.setItem('attendanceRecords', JSON.stringify(records));
+        function updateHeader() {
+            const name = document.getElementById('empName').value;
+            const y = document.getElementById('yearNum').value;
+            const m = document.getElementById('monthNum').value;
+            document.getElementById('tableHeader').innerText = `添盈科技有限公司員工${name}${y}年${m}月份出勤紀錄`;
         }
 
-        // 新增資料
-        document.getElementById('attendanceForm').addEventListener('submit', function(e) {
+        function generateMonthDays() {
+            updateHeader();
+            const yRoc = parseInt(document.getElementById('yearNum').value);
+            const yearAD = yRoc + 1911;
+            const month = parseInt(document.getElementById('monthNum').value);
+            
+            const daysInMonth = new Date(yearAD, month, 0).getDate();
+            const weekNames = ["(日)", "(-)", "(二)", "(三)", "(四)", "(五)", "(六)"];
+
+            const dateSelect = document.getElementById('selectDate');
+            dateSelect.innerHTML = '';
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateObj = new Date(yearAD, month - 1, day);
+                const weekStr = weekNames[dateObj.getDay()];
+                const dateKey = `${month}/${day} ${weekStr}`;
+                
+                const opt = document.createElement('option');
+                opt.value = dateKey;
+                opt.innerText = dateKey;
+                dateSelect.appendChild(opt);
+            }
+            renderTable();
+        }
+
+        function renderTable() {
+            const yRoc = parseInt(document.getElementById('yearNum').value);
+            const yearAD = yRoc + 1911;
+            const month = parseInt(document.getElementById('monthNum').value);
+            const daysInMonth = new Date(yearAD, month, 0).getDate();
+            const weekNames = ["(日)", "(-)", "(二)", "(三)", "(四)", "(五)", "(六)"];
+
+            const tbody = document.getElementById('sheetBody');
+            tbody.innerHTML = '';
+
+            let totalExp = 0;
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateObj = new Date(yearAD, month - 1, day);
+                const weekStr = weekNames[dateObj.getDay()];
+                const dateKey = `${month}/${day} ${weekStr}`;
+
+                const data = currentRecords[dateKey] || {};
+
+                if (data.expAmount) {
+                    totalExp += parseFloat(data.expAmount) || 0;
+                }
+
+                // 組合備註 (包含地點與支出備註)
+                let fullNote = data.noteInput || '';
+                let expItem = data.expNote || '';
+                if (expItem && !fullNote.includes(expItem)) {
+                    fullNote = expItem + '\n' + fullNote;
+                }
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${dateKey}</td>
+                    <td></td><td></td>
+                    <td>${data.stTime || ''}</td>
+                    <td>${data.edTime || ''}</td>
+                    <td>${data.rstSt || ''}</td>
+                    <td>${data.rstEd || ''}</td>
+                    <td></td><td></td><td></td><td></td><td></td><td></td>
+                    <td style="white-space: pre-line;">${fullNote}</td>
+                    <td>${data.expAmount ? '$' + data.expAmount : ''}</td>
+                `;
+                tbody.appendChild(tr);
+            }
+
+            document.getElementById('totalExpense').innerText = '$' + totalExp;
+            localStorage.setItem('company_attendance', JSON.stringify(currentRecords));
+        }
+
+        function saveRecord(e) {
             e.preventDefault();
-            const newRecord = {
-                date: document.getElementById('date').value,
-                startTime: document.getElementById('startTime').value,
-                endTime: document.getElementById('endTime').value,
-                restStart: document.getElementById('restStart').value,
-                restEnd: document.getElementById('restEnd').value,
-                expense: document.getElementById('expense').value,
-                note: document.getElementById('note').value
+            const dateKey = document.getElementById('selectDate').value;
+            
+            currentRecords[dateKey] = {
+                stTime: document.getElementById('stTime').value,
+                edTime: document.getElementById('edTime').value,
+                rstSt: document.getElementById('rstSt').value,
+                rstEd: document.getElementById('rstEd].value') || document.getElementById('rstEd').value,
+                noteInput: document.getElementById('noteInput').value,
+                expNote: document.getElementById('expNote').value,
+                expAmount: document.getElementById('expAmount').value
             };
 
-            records.push(newRecord);
             renderTable();
-            document.getElementById('note').value = '';
-            document.getElementById('expense').value = '';
-        });
+            alert(`已成功儲存 ${dateKey} 的出勤資料！`);
+        }
 
-        // 刪除資料
-        function deleteRecord(index) {
-            if (confirm('確定要刪除這筆紀錄嗎？')) {
-                records.splice(index, 1);
+        function clearAllData() {
+            if (confirm('確定要清空本月的所有紀錄嗎？')) {
+                currentRecords = {};
                 renderTable();
             }
         }
 
-        // 匯出成 Excel 可開啟的 CSV 檔案
-        function exportCSV() {
-            if(records.length === 0) {
-                alert("目前沒有資料可匯出！");
-                return;
-            }
-            let csv = '\uFEFF日期,上班時間,下班時間,休息時間,支出金額,備註\n';
-            records.forEach(r => {
-                const rest = (r.restStart && r.restEnd) ? `${r.restStart}-${r.restEnd}` : '';
-                csv += `"${r.date}","${r.startTime}","${r.endTime}","${rest}","${r.expense}","${r.note}"\n`;
-            });
-
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = `出勤紀錄_${new Date().toISOString().slice(0,10)}.csv`;
-            link.click();
-        }
-
-        // 初次載入渲染
-        renderTable();
+        // 初始化
+        generateMonthDays();
     </script>
 </body>
 </html>
